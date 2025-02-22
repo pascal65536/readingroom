@@ -87,3 +87,5 @@ cython_debug/
 data/
 old/
 uploads/
+_cache/
+_download/

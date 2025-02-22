@@ -2,27 +2,24 @@ import requests
 import json
 import os
 
-url = 'http://localhost:5000/upload'
+# POST /upload - загрузить PDF-файл книги.
 
-file_path = '/home/pascal65536/Загрузки/1.pdf'
+url = "http://localhost:5000/upload"
 
-json_data = {
-    "title": "Моя книга",
-    "author_id": "uuid_author_id",
-    "category_id": "uuid_category_id"
-}
+file_path = (
+    "/home/pacal65536/Загрузки/Чарльз Петцольд. Код. Тайный язык информатики.pdf"
+)
 
-with open(file_path, 'rb') as f:
-    # files = {'file': (os.path.basename(file_path), f)}
-    files = {'file': f}
-    data = {'json_data': json.dumps(json_data)}
+json_data = {"title": file_path.split("/")[-1], "author_id": None, "category_id": None}
+
+with open(file_path, "rb") as f:
+    files = {"file": f}
+    data = {"json_data": json.dumps(json_data)}
     response = requests.post(url, files=files, data=data)
 
-print(response.status_code)
-
-
 # Проверка ответа
-# if response.status_code == 200 or response.status_code == 201:
-#     print("Файл успешно загружен:", response.json())
-# else:
-#     print("Ошибка при загрузке файла:", response.text)
+if response.status_code not in [200, 201]:
+    print("Ошибка при загрузке файла:", response.text)
+    exit()
+
+print("Файл успешно загружен:", response.json())
