@@ -7,7 +7,7 @@ from flask_restful import Api, Resource
 import logging
 
 # Настройка логирования
-logging.basicConfig(level=logging.DEBUG, filename='main.log')
+logging.basicConfig(level=logging.DEBUG, filename="main.log")
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
@@ -17,12 +17,14 @@ app.config["DATA_FOLDER"] = "data"
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["DATA_FOLDER"], exist_ok=True)
 
+
 def calculate_md5(file_path):
     hash_md5 = hashlib.md5()
     with open(file_path, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
+
 
 def load_json(folder_name, file_name):
     filename = os.path.join(folder_name, file_name)
@@ -32,10 +34,12 @@ def load_json(folder_name, file_name):
     with open(filename, encoding="utf-8") as f:
         return json.load(f)
 
+
 def save_json(folder_name, file_name, data):
     filename = os.path.join(folder_name, file_name)
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
 
 # Ресурсы для авторов
 class AuthorList(Resource):
@@ -46,17 +50,18 @@ class AuthorList(Resource):
     def post(self):
         authors = load_json(app.config["DATA_FOLDER"], "authors.json")
         new_author = request.get_json()
-        new_author['name']
         for key, author in authors.items():
-            if author['name'] == new_author['name']:
+            if author["name"] == new_author["name"]:
                 response = jsonify({"message": "Author with this name already exists"})
                 response.status_code = 400
                 return response
-        authors.setdefault(str(uuid.uuid4()), new_author)
+        new_author["id"] = str(uuid.uuid4())
+        authors.setdefault(new_author["id"], new_author)
         save_json(app.config["DATA_FOLDER"], "authors.json", authors)
         response = jsonify(new_author)
         response.status_code = 200
         return response
+
 
 class Author(Resource):
     def get(self, author_id):
@@ -78,15 +83,22 @@ class Author(Resource):
         updated_data = request.get_json()
         authors[author_id].update(updated_data)
         save_json(app.config["DATA_FOLDER"], "authors.json", authors)
-        return jsonify(authors[author_id]), 200
+        response = jsonify(authors[author_id])
+        response.status_code = 200
+        return response
 
     def delete(self, author_id):
         authors = load_json(app.config["DATA_FOLDER"], "authors.json")
         if author_id not in authors:
-            return jsonify({"message": "Author not found"}), 404
+            response = jsonify({"message": "Author not found"})
+            response.status_code = 404
+            return response
         del authors[author_id]
         save_json(app.config["DATA_FOLDER"], "authors.json", authors)
-        return jsonify({"message": "Author deleted"}), 200
+        response = jsonify({"message": "Author deleted"})
+        response.status_code = 200
+        return response
+
 
 # Ресурсы для категорий
 class CategoryList(Resource):
@@ -97,10 +109,11 @@ class CategoryList(Resource):
     def post(self):
         categories = load_json(app.config["DATA_FOLDER"], "categories.json")
         new_category = request.get_json()
-        new_category['id'] = str(uuid.uuid4())
-        categories[new_category['id']] = new_category
+        new_category["id"] = str(uuid.uuid4())
+        categories[new_category["id"]] = new_category
         save_json(app.config["DATA_FOLDER"], "categories.json", categories)
         return jsonify(new_category), 201
+
 
 class Category(Resource):
     def get(self, category_id):
@@ -127,6 +140,7 @@ class Category(Resource):
         del categories[category_id]
         save_json(app.config["DATA_FOLDER"], "categories.json", categories)
         return jsonify({"message": "Category deleted"}), 200
+
 
 # Ресурсы для книг
 class BookList(Resource):
@@ -161,18 +175,21 @@ class BookList(Resource):
         file.save(file_path)
         file_hash = calculate_md5(file_path)
 
-        new_book.update({
-            "id": uid,
-            "filename_orig": file.filename,
-            "filename_uid": new_filename,
-            "file_path": file_path,
-            "file_hash": file_hash
-        })
+        new_book.update(
+            {
+                "id": uid,
+                "filename_orig": file.filename,
+                "filename_uid": new_filename,
+                "file_path": file_path,
+                "file_hash": file_hash,
+            }
+        )
 
         books = load_json(app.config["DATA_FOLDER"], "books.json")
         books.append(new_book)
         save_json(app.config["DATA_FOLDER"], "books.json", books)
         return jsonify(new_book), 201
+
 
 class Book(Resource):
     def get(self, book_id):
@@ -231,8 +248,8 @@ class FileUpload(Resource):
             "filename_orig": file.filename,
             "filename_uid": new_filename,
             "file_path": file_path,
-            "file_hash": file_hash
-        }   
+            "file_hash": file_hash,
+        }
 
         books = load_json(app.config["DATA_FOLDER"], "books.json")
         books.append(new_book)
@@ -246,7 +263,9 @@ class FileDownload(Resource):
         book = next((b for b in books if b["id"] == file_id), None)
         if not book:
             return jsonify({"message": "Book not found"}), 404
-        return send_from_directory(os.path.dirname(book["file_path"]), book["filename_uid"])
+        return send_from_directory(
+            os.path.dirname(book["file_path"]), book["filename_uid"]
+        )
 
 
 api = Api(app)
@@ -261,4 +280,3 @@ api.add_resource(FileDownload, "/download/<string:file_id>")
 
 if __name__ == "__main__":
     app.run(debug=True)
-

@@ -2,13 +2,11 @@ import requests
 import json
 import uuid
 
-# PUT /authors/<id> - обновить информацию об авторе.
+# DELETE /authors/<id> - удалить автора.
 
-author_id = "c727b585-b684-4d2f-a8ca-4e4dab2d1c55"
+author_id = "990e381c-f90b-4ea9-9b55-d94c8fe3b233"
 url = f"http://localhost:5000/authors/{author_id}"
-headers = {"Content-Type": "application/json"}
-json_data = {"name": "Марк Твен", "name_eng": "Mark Twain"}
-response = requests.put(url, json=json_data, headers=headers)
+response = requests.delete(url)
 
 if response.status_code == 200:
     book = response.json()

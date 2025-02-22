@@ -2,13 +2,12 @@ import requests
 import json
 import uuid
 
-# PUT /authors/<id> - обновить информацию об авторе.
+# POST /authors - добавить нового автора.
 
-author_id = "c727b585-b684-4d2f-a8ca-4e4dab2d1c55"
-url = f"http://localhost:5000/authors/{author_id}"
+url = "http://localhost:5000/authors"
+json_data = {"name": "Марк Твен"}
 headers = {"Content-Type": "application/json"}
-json_data = {"name": "Марк Твен", "name_eng": "Mark Twain"}
-response = requests.put(url, json=json_data, headers=headers)
+response = requests.post(url, json=json_data, headers=headers)
 
 if response.status_code == 200:
     book = response.json()
