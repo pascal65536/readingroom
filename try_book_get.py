@@ -1,7 +1,7 @@
 import requests
 
 # ID книги, информацию о которой вы хотите получить
-book_id = "524fc290636f207b73b0da18632dc909"
+book_id = "563a859f7a09bc796783706bd07388e5"
 
 # URL для получения информации о книге
 url = f"http://localhost:5000/books/{book_id}"

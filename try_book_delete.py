@@ -1,7 +1,9 @@
 import requests
 
-# ID книги, которую вы хотите удалить
-book_id = 'uuid_book_id'
+# DELETE /books/<id> - удалить книгу.
+
+# ID книги, информацию о которой вы хотите обновить
+book_id = '524fc290636f207b73b0da18632dc909'
 
 # URL для удаления книги
 url = f'http://localhost:5000/books/{book_id}'

@@ -2,10 +2,9 @@ API Endpoints
 
     Книги:
         GET /books - получить список всех книг.
-        POST /books - добавить новую книгу.
         GET /books/<id> - получить информацию о книге по ID.
         PUT /books/<id> - обновить информацию о книге.
-        DELETE /books/<id> - удалить книгу.
+        DELETE /books/<id> - удалить книгу и PDF файл.
 
     Авторы:
         GET /authors - получить список всех авторов.
@@ -22,8 +21,8 @@ API Endpoints
         DELETE /categories/<id> - удалить категорию.
 
     Загрузка файлов:
-        POST /upload - загрузить PDF-файл книги.
         GET /download/<id> - скачать PDF-файл книги.
+        POST /upload - загрузить PDF-файл книги и добавить новую книгу.
 
 Интеграция с Google Books API
 

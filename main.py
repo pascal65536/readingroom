@@ -159,66 +159,6 @@ class BookList(Resource):
         books = load_json(app.config["DATA_FOLDER"], "books.json")
         return jsonify(books)
 
-    # def post(self):
-    #     if "file" not in request.files:
-    #         response = jsonify({"message": "No file part"})
-    #         response.status_code = 400
-    #         return response
-
-    #     file = request.files["file"]
-    #     if file.filename == "":
-    #         response = jsonify({"message": "No selected file"})
-    #         response.status_code = 400
-    #         return response
-
-    #     new_book = request.form.get("json_data")
-    #     if not new_book:
-    #         response = jsonify({"message": "No book data provided"})
-    #         response.status_code = 400
-    #         return response
-
-    #     try:
-    #         new_book = json.loads(new_book)
-    #     except json.JSONDecodeError:
-    #         response = jsonify({"message": "Invalid JSON data"})
-    #         response.status_code = 400
-    #         return response
-
-    #     ext = file.filename.rsplit(".", 1)[-1].lower()
-    #     if ext not in {"pdf", "epub", "mobi"}:
-    #         response = jsonify({"message": "File type not allowed"})
-    #         response.status_code = 400
-    #         return response
-
-    #     books = load_json(app.config["DATA_FOLDER"], "books.json")
-    #     import ipdb
-
-    #     ipdb.sset_trace()
-
-    #     uid = str(uuid.uuid4())
-    #     new_filename = f"{uid}.{ext}"
-    #     folder_path = os.path.join(app.config["UPLOAD_FOLDER"], uid[:2], uid[2:4])
-    #     os.makedirs(folder_path, exist_ok=True)
-    #     file_path = os.path.join(folder_path, new_filename)
-    #     file.save(file_path)
-    #     file_hash = calculate_md5(file_path)
-
-    #     new_book.update(
-    #         {
-    #             "id": uid,
-    #             "filename_orig": file.filename,
-    #             "filename_uid": new_filename,
-    #             "file_path": file_path,
-    #             "file_hash": file_hash,
-    #         }
-    #     )
-
-    #     books.append(new_book)
-    #     save_json(app.config["DATA_FOLDER"], "books.json", books)
-    #     response = jsonify(new_book)
-    #     response.status_code = 201
-    #     return response
-
 
 class Book(Resource):
     def get(self, book_id):
@@ -232,24 +172,35 @@ class Book(Resource):
 
     def put(self, book_id):
         books = load_json(app.config["DATA_FOLDER"], "books.json")
-        book = next((b for b in books if b["id"] == book_id), None)
+        book = books.get(book_id)
         if not book:
-            return jsonify({"message": "Book not found"}), 404
+            response = jsonify({"message": "Book not found"})
+            response.status_code = 404
+            return response           
         updated_data = request.get_json()
         book.update(updated_data)
         save_json(app.config["DATA_FOLDER"], "books.json", books)
-        return jsonify(book), 200
+        response = jsonify(book)
+        response.status_code = 200
+        return response
 
     def delete(self, book_id):
         books = load_json(app.config["DATA_FOLDER"], "books.json")
-        book = next((b for b in books if b["id"] == book_id), None)
+        book = books.get(book_id)
         if not book:
-            return jsonify({"message": "Book not found"}), 404
-        books.remove(book)
+            response = jsonify({"message": "Book not found"})
+            response.status_code = 404
+            return response 
+
+        books.pop(book_id)
         save_json(app.config["DATA_FOLDER"], "books.json", books)
-        if os.path.exists(book["file_path"]):
-            os.remove(book["file_path"])
-        return jsonify({"message": "Book deleted"}), 200
+        file_path = book.get("file_path")
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)            
+
+        response = jsonify({"message": "Book deleted"})
+        response.status_code = 200
+        return response 
 
 
 # Ресурсы для загрузки файлов
@@ -321,15 +272,15 @@ class FileUpload(Resource):
 
 
 class FileDownload(Resource):
-    def get(self, file_hash):
+    def get(self, book_id):
         # Загружаем данные о книгах
         books = load_json(app.config["DATA_FOLDER"], "books.json")
-        if file_hash not in books:
+        if book_id not in books:
             response = jsonify({"message": "File not found"})
             response.status_code = 404
             return response
 
-        book = books[file_hash]
+        book = books[book_id]
         file_path = book.get("file_path")
         if not os.path.exists(file_path):
             response = jsonify({"message": "File not found on server"})
@@ -343,25 +294,6 @@ class FileDownload(Resource):
             as_attachment=True,
         )
 
-    def delete(self, file_hash):
-        # Загружаем данные о книгах
-        books = load_json(app.config["DATA_FOLDER"], "books.json")
-        if file_hash not in books:
-            response = jsonify({"message": "File not found"})
-            response.status_code = 404
-            return response
-
-        book = books.pop(file_hash)
-        file_path = book.get("file_path")
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-        # Обновляем данные о книгах
-        save_json(app.config["DATA_FOLDER"], "books.json", books)
-        response = jsonify({"message": "File deleted successfully"})
-        response.status_code = 200
-        return response
-
 
 api = Api(app)
 api.add_resource(BookList, "/books")
@@ -371,7 +303,7 @@ api.add_resource(Author, "/authors/<string:author_id>")
 api.add_resource(CategoryList, "/categories")
 api.add_resource(Category, "/categories/<string:category_id>")
 api.add_resource(FileUpload, "/upload")
-api.add_resource(FileDownload, "/download/<string:file_hash>")
+api.add_resource(FileDownload, "/download/<string:book_id>")
 
 if __name__ == "__main__":
     app.run(debug=True)
