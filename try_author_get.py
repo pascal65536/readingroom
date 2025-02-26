@@ -4,7 +4,7 @@ import uuid
 
 # GET /authors/<id> - получить информацию об авторе по ID.
 
-author_id = "c727b585-b684-4d2f-a8ca-4e4dab2d1c55"
+author_id = "49da3554-608c-4f12-aa2f-81bc39b20c81"
 url = f"http://localhost:5000/authors/{author_id}"
 response = requests.get(url)
 
