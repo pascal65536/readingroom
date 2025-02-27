@@ -6,6 +6,8 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_restful import Api, Resource
 import logging
 import shutil
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG, filename="main.log")
@@ -14,11 +16,42 @@ app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["DATA_FOLDER"] = "data"
 app.config["CACHE_FOLDER"] = "_cache"
+app.config['JWT_SECRET_KEY'] = 'super-secret'
+jwt = JWTManager(app)
 
 # Создание необходимых папок
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["DATA_FOLDER"], exist_ok=True)
 os.makedirs(app.config["CACHE_FOLDER"], exist_ok=True)
+
+
+
+users = {
+    'user1': {'password': 'password1'},
+    'user2': {'password': 'password2'}
+}
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.json.get('username', None)
+    password = request.json.get('password', None)
+
+    if not username or not password:
+        return jsonify({"msg": "Необходимо указать логин и пароль"}), 400
+
+    if username not in users or users[username]['password'] != password:
+        return jsonify({"msg": "Неверный логин или пароль"}), 401
+
+    access_token = create_access_token(identity=username)
+    return jsonify(access_token=access_token)
+
+
+@app.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
+
 
 
 def calculate_md5(file_path):
