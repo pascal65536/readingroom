@@ -4,10 +4,10 @@ import uuid
 
 # PUT /categories/<id> - обновить информацию о категории.
 
-category_id = "c727b585-b684-4d2f-a8ca-4e4dab2d1c55" #так как это вроде пример я не меняла
+category_id = "58f2b7d4-72ca-4ea1-a3b9-71c5066795f5" #так как это вроде пример я не меняла
 url = f"http://localhost:5000/categories/{category_id}"
 headers = {"Content-Type": "application/json"}
-json_data2 = {"category": "экшн", "name_eng": "ekshn"}
+json_data2 = {"category": "экшн", "name_eng": "action"}
 response = requests.put(url, json=json_data2, headers=headers)
 
 if response.status_code == 200:

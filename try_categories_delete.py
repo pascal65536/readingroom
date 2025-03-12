@@ -4,7 +4,7 @@ import uuid
 
 # DELETE /categories/<id> - удалить категорию.
 
-category_id = "990e381c-f90b-4ea9-9b55-d94c8fe3b233" #так как это вроде пример я не меняла
+category_id = "58f2b7d4-72ca-4ea1-a3b9-71c5066795f5" #так как это вроде пример я не меняла
 url = f"http://localhost:5000/categories/{category_id}"
 response = requests.delete(url)
 

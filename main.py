@@ -173,7 +173,10 @@ class Category(Resource):
         updated_data = request.get_json()
         categories[category_id].update(updated_data)
         save_json(app.config["DATA_FOLDER"], "categories.json", categories)
-        return jsonify(categories[category_id]), 200
+        response = jsonify(categories[category_id])
+        response.status_code = 200
+        return response
+
 
     def delete(self, category_id):
         categories = load_json(app.config["DATA_FOLDER"], "categories.json")
@@ -183,7 +186,9 @@ class Category(Resource):
             return response
         del categories[category_id]
         save_json(app.config["DATA_FOLDER"], "categories.json", categories)
-        return jsonify({"message": "Category deleted"}), 200
+        response = jsonify({"message": "Category deleted"})
+        response.status_code = 200
+        return response
 
 
 # Ресурсы для книг

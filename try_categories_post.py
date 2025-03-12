@@ -4,8 +4,8 @@ import uuid
 
 # POST /categories - добавить новую категорию.
 
-url = "http://localhost:5000/categories"
-json_data2 = {"category": "экшн"}
+url = "http://127.0.0.1:5000/categories"
+json_data2 = {"category": "python"}
 headers = {"Content-Type": "application/json"}
 response = requests.post(url, json=json_data2, headers=headers)
 
