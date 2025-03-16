@@ -5,10 +5,11 @@ import hashlib
 from flask import Flask, request, jsonify, send_from_directory
 from flask_restful import Api, Resource
 import shutil
-from extensions import db, jwt
+from extensions import db
 from models import Book as BookModel
 from models import Author as AuthorModel
 from models import Category as CategoryModel
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 
 app = Flask(__name__)
@@ -22,7 +23,7 @@ app.config["JWT_SECRET_KEY"] = os.urandom(256)
 
 # Инициализация расширений
 db.init_app(app)
-jwt.init_app(app)
+jwt = JWTManager(app)
 
 # Создание необходимых папок
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -34,23 +35,23 @@ os.makedirs(app.config["CACHE_FOLDER"], exist_ok=True)
 users = {"user1": {"password": "password1"}, "user2": {"password": "password2"}}
 
 
-@app.route("/login", methods=["POST"])
+@app.route('/login', methods=['POST'])
 def login():
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
+    username = request.json.get('username', None)
+    password = request.json.get('password', None)
 
     if not username or not password:
         return jsonify({"msg": "Необходимо указать логин и пароль"}), 400
 
-    if username not in users or users[username]["password"] != password:
-        return jsonify({"msg": "Неизвестный логин или пароль"}), 401
+    if username not in users or users[username]['password'] != password:
+        return jsonify({"msg": "Неверный логин или пароль"}), 401
 
     access_token = create_access_token(identity=username)
     return jsonify(access_token=access_token)
 
 
-# Защищенный маршрут (пример)
-@app.route("/protected", methods=["GET"])
+@app.route('/protected', methods=['GET'])
+@jwt_required()
 def protected():
     current_user = get_jwt_identity()
     return jsonify(logged_in_as=current_user), 200
@@ -83,6 +84,7 @@ class AuthorList(Resource):
             author_list.append(author.as_dict())
         return jsonify(author_list)
 
+    @jwt_required()
     def post(self):
         authors = AuthorModel.query.all()
         new_author = request.get_json()
@@ -130,6 +132,7 @@ class Author(Resource):
             # Возвращаем данные автора в формате JSON
             return jsonify(author.as_dict())
 
+    @jwt_required()
     def put(self, author_id):
         with app.app_context():
             # Ищем книгу по id
@@ -156,6 +159,7 @@ class Author(Resource):
             response.status_code = 200
             return response
 
+    @jwt_required()
     def delete(self, author_id):
         with app.app_context():
             # Ищем книгу по id
@@ -251,6 +255,7 @@ class Book(Resource):
             # Возвращаем данные книги в формате JSON
             return jsonify(book.as_dict())
 
+    @jwt_required()
     def put(self, book_id):
         with app.app_context():
             # Ищем книгу по id
@@ -285,6 +290,7 @@ class Book(Resource):
             response.status_code = 200
             return response
 
+    @jwt_required()
     def delete(self, book_id):
         with app.app_context():
             # Ищем книгу по id
@@ -319,6 +325,7 @@ class Book(Resource):
 
 # Ресурсы для загрузки файлов
 class FileUpload(Resource):
+    @jwt_required()
     def post(self):
         # Проверяем наличие файла в запросе
         if "file" not in request.files:
@@ -396,6 +403,7 @@ class FileUpload(Resource):
 
 
 class FileDownload(Resource):
+    @jwt_required()
     def get(self, book_id):
         with app.app_context():
             # Ищем книгу по id
