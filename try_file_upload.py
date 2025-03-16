@@ -7,7 +7,7 @@ import os
 url = "http://localhost:5000/upload"
 
 file_path = (
-    "/home/pacal65536/Загрузки/Чарльз Петцольд. Код. Тайный язык информатики.pdf"
+    "/home/pacal65536/Yandex.Disk/Книги_Логика/книги/Клод Элвуд Шеннон и 80-летие открытия логической теории дискретных вычислительных и управляющих устройств.pdf"
 )
 
 json_data = {"title": file_path.split("/")[-1], "author_id": None, "category_id": None}
