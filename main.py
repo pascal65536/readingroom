@@ -1,14 +1,14 @@
 import os
 import uuid
 import json
-import hashlib
-from flask import Flask, request, jsonify, send_from_directory
-from flask_restful import Api, Resource
 import shutil
+import hashlib
 from extensions import db
 from models import Book as BookModel
+from flask_restful import Api, Resource
 from models import Author as AuthorModel
 from models import Category as CategoryModel
+from flask import Flask, request, jsonify, send_from_directory
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 
@@ -114,8 +114,10 @@ class AuthorList(Resource):
                 response = jsonify({"message": "Error adding author"})
                 response.status_code = 500
                 return response
+        
+        author_obj = AuthorModel.query.filter_by(name=name).first()
         # Возвращаем данные о добавленном авторе
-        response = jsonify(new_author)
+        response = jsonify(author_obj.as_dict())
         response.status_code = 200
         return response
 
@@ -267,8 +269,8 @@ class Book(Resource):
             # Получаем данные для обновления
             updated_data = request.get_json()
             # Обновляем поля книги, если они предоставлены
-            book.author_id = updated_data.get("author_id", book.author_id)
-            book.category_id = updated_data.get("category_id", book.category_id)
+            # book.author_id = updated_data.get("author_id", book.author_id)
+            # book.category_id = updated_data.get("category_id", book.category_id)
             book.title = updated_data.get("title", book.title)
             book.isbn = updated_data.get("isbn", book.isbn)
             book.publication_date = updated_data.get(
@@ -383,9 +385,9 @@ class FileUpload(Resource):
         with app.app_context():
             book_obj = BookModel.query.filter_by(id=file_hash).first()
             if book_obj:
-                response = jsonify({"message": "A file with this hash already exists"})
-                response.status_code = 400
-                return response
+                response = jsonify(book_obj.as_dict())
+                response.status_code = 200
+                return response                
             # Создаем новый объект книги и добавляем его в базу данных
             book_obj = BookModel(**new_book)
             try:
@@ -426,6 +428,123 @@ class FileDownload(Resource):
             )
 
 
+
+class BookCategories(Resource):
+    @jwt_required()
+    def get(self, book_id):
+        with app.app_context():
+            book = BookModel.query.filter_by(id=book_id).first()
+            if not book:
+                return jsonify({"message": "Book not found"}), 404
+
+            categories = book.categories
+            return jsonify([category.as_dict() for category in categories]), 200
+
+    @jwt_required()
+    def post(self, book_id):
+        with app.app_context():
+            book = BookModel.query.filter_by(id=book_id).first()
+            if not book:
+                return jsonify({"message": "Book not found"}), 404
+
+            category_data = request.get_json()
+            category_id = category_data.get("category_id")
+            if not category_id:
+                return jsonify({"message": "Category ID is required"}), 400
+
+            category = CategoryModel.query.filter_by(id=category_id).first()
+            if not category:
+                return jsonify({"message": "Category not found"}), 404
+
+            if category in book.categories:
+                return jsonify({"message": "Category already added to the book"}), 400
+
+            book.categories.append(category)
+            db.session.commit()
+            return jsonify({"message": "Category added to the book"}), 200
+
+    @jwt_required()
+    def delete(self, book_id):
+        with app.app_context():
+            book = BookModel.query.filter_by(id=book_id).first()
+            if not book:
+                return jsonify({"message": "Book not found"}), 404
+
+            category_data = request.get_json()
+            category_id = category_data.get("category_id")
+            if not category_id:
+                return jsonify({"message": "Category ID is required"}), 400
+
+            category = CategoryModel.query.filter_by(id=category_id).first()
+            if not category:
+                return jsonify({"message": "Category not found"}), 404
+
+            if category not in book.categories:
+                return jsonify({"message": "Category not found in the book"}), 400
+
+            book.categories.remove(category)
+            db.session.commit()
+            return jsonify({"message": "Category removed from the book"}), 200
+
+
+class BookAuthors(Resource):
+    @jwt_required()
+    def get(self, book_id):
+        with app.app_context():
+            book = BookModel.query.filter_by(id=book_id).first()
+            if not book:
+                return jsonify({"message": "Book not found"}), 404
+
+            authors = book.authors
+            return jsonify([author.as_dict() for author in authors]), 200
+
+    @jwt_required()
+    def post(self, book_id):
+        with app.app_context():
+            book = BookModel.query.filter_by(id=book_id).first()
+            if not book:
+                return jsonify({"message": "Book not found"}), 404
+
+            author_data = request.get_json()
+            author_id = author_data.get("author_id")
+            if not author_id:
+                return jsonify({"message": "Author ID is required"}), 400
+
+            author = AuthorModel.query.filter_by(id=author_id).first()
+            if not author:
+                return jsonify({"message": "Author not found"}), 404
+
+            if author in book.authors:
+                return jsonify({"message": "Author already added to the book"}), 400
+
+            book.authors.append(author)
+            db.session.commit()
+            return jsonify({"message": "Author added to the book"}), 200
+
+    @jwt_required()
+    def delete(self, book_id):
+        with app.app_context():
+            book = BookModel.query.filter_by(id=book_id).first()
+            if not book:
+                return jsonify({"message": "Book not found"}), 404
+
+            author_data = request.get_json()
+            author_id = author_data.get("author_id")
+            if not author_id:
+                return jsonify({"message": "Author ID is required"}), 400
+
+            author = AuthorModel.query.filter_by(id=author_id).first()
+            if not author:
+                return jsonify({"message": "Author not found"}), 404
+
+            if author not in book.authors:
+                return jsonify({"message": "Author not found in the book"}), 400
+
+            book.authors.remove(author)
+            db.session.commit()
+            return jsonify({"message": "Author removed from the book"}), 200
+
+
 # Добавление ресурсов в API
 api = Api(app)
 api.add_resource(BookList, "/books")
@@ -436,6 +555,10 @@ api.add_resource(CategoryList, "/categories")
 api.add_resource(Category, "/categories/<string:category_id>")
 api.add_resource(FileUpload, "/upload")
 api.add_resource(FileDownload, "/download/<string:book_id>")
+
+api.add_resource(BookAuthors, "/books/<string:book_id>/authors")
+api.add_resource(BookCategories, "/books/<string:book_id>/categories")
+
 
 if __name__ == "__main__":
     with app.app_context():
