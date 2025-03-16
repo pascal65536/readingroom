@@ -5,7 +5,7 @@ import uuid
 # POST /authors - добавить нового автора.
 
 url = "http://localhost:5000/authors"
-json_data = {"name": "Марк Твен"}
+json_data = {"name": "Ю.В. Китаев"}
 headers = {"Content-Type": "application/json"}
 response = requests.post(url, json=json_data, headers=headers)
 

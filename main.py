@@ -7,6 +7,9 @@ from flask_restful import Api, Resource
 import shutil
 from extensions import db, jwt
 from models import Book as BookModel
+from models import Author as AuthorModel
+from models import Category as CategoryModel
+
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "uploads"
@@ -66,28 +69,50 @@ def calculate_md5(file_path):
 @app.route("/")
 def index():
     books_list = list()
-    for book in BookModel.query.all()[:10]:
-        books_list.append(book.as_dict())    
+    for book in AuthorModel.query.all()[:10]:
+        books_list.append(book.as_dict())
     return jsonify(books_list)
 
 
 # Ресурсы для авторов
 class AuthorList(Resource):
     def get(self):
-        authors = load_json(app.config["DATA_FOLDER"], "authors.json")
-        return jsonify(authors)
+        authors = AuthorModel.query.all()
+        author_list = list()
+        for author in authors:
+            author_list.append(author.as_dict())
+        return jsonify(author_list)
 
     def post(self):
-        authors = load_json(app.config["DATA_FOLDER"], "authors.json")
+        authors = AuthorModel.query.all()
         new_author = request.get_json()
-        for key, author in authors.items():
-            if author["name"] == new_author["name"]:
-                response = jsonify({"message": "Author with this name already exists"})
+        name = new_author.get("name")
+        if not name:
+            response = jsonify({"message": "Author`s Name required"})
+            response.status_code = 400
+            return response
+        new_author = {
+            "name_eng": new_author.get("name_eng"),
+            "name": name,
+        }
+
+        with app.app_context():
+            author_obj = AuthorModel.query.filter_by(name=name).first()
+            if author_obj:
+                response = jsonify({"message": "Author`s this Name already exists"})
                 response.status_code = 400
                 return response
-        new_author["id"] = str(uuid.uuid4())
-        authors.setdefault(new_author["id"], new_author)
-        save_json(app.config["DATA_FOLDER"], "authors.json", authors)
+            # Создаем новый объект автор и добавляем его в базу данных
+            author_obj = AuthorModel(**new_author)
+            try:
+                db.session.add(author_obj)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                response = jsonify({"message": "Error adding author"})
+                response.status_code = 500
+                return response
+        # Возвращаем данные о добавленном авторе
         response = jsonify(new_author)
         response.status_code = 200
         return response
@@ -95,39 +120,63 @@ class AuthorList(Resource):
 
 class Author(Resource):
     def get(self, author_id):
-        authors = load_json(app.config["DATA_FOLDER"], "authors.json")
-        author = authors.get(author_id)
-        if not author:
-            response = jsonify({"message": "Author not found"})
-            response.status_code = 404
-            return response
-        return jsonify(author)
+        with app.app_context():
+            # Ищем автора по id
+            author = AuthorModel.query.filter_by(id=author_id).first()
+            if not author:
+                response = jsonify({"message": "Author not found"})
+                response.status_code = 404
+                return response
+            # Возвращаем данные автора в формате JSON
+            return jsonify(author.as_dict())
 
     def put(self, author_id):
-        authors = load_json(app.config["DATA_FOLDER"], "authors.json")
-        author = authors.get(author_id)
-        if not author:
-            response = jsonify({"message": "Author not found"})
-            response.status_code = 404
+        with app.app_context():
+            # Ищем книгу по id
+            author = AuthorModel.query.filter_by(id=author_id).first()
+            if not author:
+                response = jsonify({"message": "Author not found"})
+                response.status_code = 404
+                return response
+            # Получаем данные для обновления
+            updated_data = request.get_json()
+            # Обновляем поля книги, если они предоставлены
+            author.name = updated_data.get("name", author.name)
+            author.name_eng = updated_data.get("name_eng", author.name_eng)
+            # Пытаемся зафиксировать изменения в базе данных
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                response = jsonify({"message": "Error updating book"})
+                response.status_code = 500
+                return response
+            # Возвращаем обновленные данные книги
+            response = jsonify(author.as_dict())
+            response.status_code = 200
             return response
-        updated_data = request.get_json()
-        authors[author_id].update(updated_data)
-        save_json(app.config["DATA_FOLDER"], "authors.json", authors)
-        response = jsonify(authors[author_id])
-        response.status_code = 200
-        return response
 
     def delete(self, author_id):
-        authors = load_json(app.config["DATA_FOLDER"], "authors.json")
-        if author_id not in authors:
-            response = jsonify({"message": "Author not found"})
-            response.status_code = 404
+        with app.app_context():
+            # Ищем книгу по id
+            author = AuthorModel.query.filter_by(id=author_id).first()
+            if not author:
+                response = jsonify({"message": "Author not found"})
+                response.status_code = 404
+                return response
+            # Удаляем запись из базы данных
+            try:
+                AuthorModel.query.filter_by(id=author_id).delete()
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                response = jsonify({"message": "Error deleting author"})
+                response.status_code = 500
+                return response
+            # Возвращаем успешное сообщение
+            response = jsonify({"message": "Author deleted"})
+            response.status_code = 200
             return response
-        del authors[author_id]
-        save_json(app.config["DATA_FOLDER"], "authors.json", authors)
-        response = jsonify({"message": "Author deleted"})
-        response.status_code = 200
-        return response
 
 
 # Ресурсы для категорий
@@ -202,7 +251,6 @@ class Book(Resource):
             # Возвращаем данные книги в формате JSON
             return jsonify(book.as_dict())
 
-
     def put(self, book_id):
         with app.app_context():
             # Ищем книгу по id
@@ -218,7 +266,9 @@ class Book(Resource):
             book.category_id = updated_data.get("category_id", book.category_id)
             book.title = updated_data.get("title", book.title)
             book.isbn = updated_data.get("isbn", book.isbn)
-            book.publication_date = updated_data.get("publication_date", book.publication_date)
+            book.publication_date = updated_data.get(
+                "publication_date", book.publication_date
+            )
             book.publisher = updated_data.get("publisher", book.publisher)
             book.description = updated_data.get("description", book.description)
             book.cover_image = updated_data.get("cover_image", book.cover_image)
@@ -234,7 +284,6 @@ class Book(Resource):
             response = jsonify(book.as_dict())
             response.status_code = 200
             return response
-
 
     def delete(self, book_id):
         with app.app_context():
