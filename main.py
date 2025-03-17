@@ -493,57 +493,94 @@ class BookAuthors(Resource):
         with app.app_context():
             book = BookModel.query.filter_by(id=book_id).first()
             if not book:
-                return jsonify({"message": "Book not found"}), 404
+                # Возвращаем данные
+                response = jsonify({"message": "Book not found"})
+                response.status_code = 404
+                return response   
 
             authors = book.authors
-            return jsonify([author.as_dict() for author in authors]), 200
+            # Возвращаем данные
+            response = jsonify([author.as_dict() for author in authors])
+            response.status_code = 200
+            return response            
 
     @jwt_required()
     def post(self, book_id):
         with app.app_context():
             book = BookModel.query.filter_by(id=book_id).first()
             if not book:
-                return jsonify({"message": "Book not found"}), 404
+                # Возвращаем данные
+                response = jsonify({"message": "Book not found"})
+                response.status_code = 404
+                return response   
 
             author_data = request.get_json()
             author_id = author_data.get("author_id")
             if not author_id:
-                return jsonify({"message": "Author ID is required"}), 400
+                # Возвращаем данные
+                response = jsonify({"message": "Author ID is required"})
+                response.status_code = 400
+                return response   
+
 
             author = AuthorModel.query.filter_by(id=author_id).first()
             if not author:
-                return jsonify({"message": "Author not found"}), 404
-
+                # Возвращаем данные
+                response = jsonify({"message": "Author not found"})
+                response.status_code = 404
+                return response   
+           
             if author in book.authors:
-                return jsonify({"message": "Author already added to the book"}), 400
+                # Возвращаем данные
+                response = jsonify({"message": "Author already added to the book"})
+                response.status_code = 400
+                return response   
 
             book.authors.append(author)
             db.session.commit()
-            return jsonify({"message": "Author added to the book"}), 200
+            # Возвращаем данные
+            response = jsonify({"message": "Author added to the book"})
+            response.status_code = 200
+            return response    
 
     @jwt_required()
     def delete(self, book_id):
         with app.app_context():
             book = BookModel.query.filter_by(id=book_id).first()
             if not book:
-                return jsonify({"message": "Book not found"}), 404
+                # Возвращаем данные
+                response = jsonify({"message": "Book not found"})
+                response.status_code = 404
+                return response    
 
             author_data = request.get_json()
             author_id = author_data.get("author_id")
             if not author_id:
-                return jsonify({"message": "Author ID is required"}), 400
+                # Возвращаем данные
+                response = jsonify({"message": "Author ID is required"})
+                response.status_code = 400
+                return response    
 
             author = AuthorModel.query.filter_by(id=author_id).first()
             if not author:
-                return jsonify({"message": "Author not found"}), 404
+                # Возвращаем данные
+                response = jsonify({"message": "Author not found"})
+                response.status_code = 404
+                return response    
+
 
             if author not in book.authors:
-                return jsonify({"message": "Author not found in the book"}), 400
-
+                # Возвращаем данные
+                response = jsonify({"message": "Author not found in the book"})
+                response.status_code = 400
+                return response    
+                
             book.authors.remove(author)
             db.session.commit()
-            return jsonify({"message": "Author removed from the book"}), 200
-
+            # Возвращаем данные
+            response = jsonify({"message": "Author removed to the book"})
+            response.status_code = 200
+            return response    
 
 # Добавление ресурсов в API
 api = Api(app)
