@@ -11,7 +11,6 @@ def get_access_token(username, password, govdatahub='localhost:5000'):
     url = f"http://{govdatahub}/login"
     json_data = {"username": username, "password": password}
     headers = {"Content-Type": "application/json"}
-    response = requests.post(url, json=json_data, headers=headers)
     try:
         response = requests.post(url, json=json_data, headers=headers)
         return response.json()

@@ -130,7 +130,7 @@ class Author(Resource):
             if not author:
                 response = jsonify({"message": "Author not found"})
                 response.status_code = 404
-                return response
+                return response 
             # Возвращаем данные автора в формате JSON
             return jsonify(author.as_dict())
 
