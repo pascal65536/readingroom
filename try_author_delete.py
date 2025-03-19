@@ -1,12 +1,20 @@
 import requests
 import json
 import uuid
+import access
+
+
+access_token = access.get_access_token("user1", "password1")
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {access_token}",
+}
+
 
 # DELETE /authors/<id> - удалить автора.
-
-author_id = "990e381c-f90b-4ea9-9b55-d94c8fe3b233"
+author_id = "4"
 url = f"http://localhost:5000/authors/{author_id}"
-response = requests.delete(url)
+response = requests.delete(url, headers=headers)
 
 if response.status_code == 200:
     book = response.json()
