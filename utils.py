@@ -3,11 +3,12 @@ import json
 import os
 
 
-def get_access_token(username, password):
+
+def get_access_token(username, password, govdatahub='localhost:5000'):
     """
     POST /login
     """
-    url = "http://localhost:5000/login"
+    url = f"http://{govdatahub}/login"
     json_data = {"username": username, "password": password}
     headers = {"Content-Type": "application/json"}
     response = requests.post(url, json=json_data, headers=headers)
@@ -18,12 +19,12 @@ def get_access_token(username, password):
         print(f"Error in `get_access_token` {e}")
 
 
-def get_book_authors(book_id, access_token):
+def get_book_authors(book_id, access_token, govdatahub = 'localhost:5000'):
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}",
     }
-    url = f"http://localhost:5000/books/{book_id}/authors"
+    url = f"http://{govdatahub}/books/{book_id}/authors"
     try:
         response = requests.post(url, headers=headers, json=payload)
         return response
@@ -31,12 +32,12 @@ def get_book_authors(book_id, access_token):
         print(f"Error in `add_author_to_book` {e}")
 
 
-def add_author_to_book(book_id, author_id, access_token):
+def add_author_to_book(book_id, author_id, access_token, govdatahub = 'localhost:5000'):
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}",
     }
-    url = f"http://localhost:5000/books/{book_id}/authors"
+    url = f"http://{govdatahub}/books/{book_id}/authors"
     payload = {"author_id": author_id}
     try:
         response = requests.post(url, headers=headers, json=payload)
@@ -45,12 +46,12 @@ def add_author_to_book(book_id, author_id, access_token):
         print(f"Error in `add_author_to_book` {e}")
 
 
-def remove_author_from_book(book_id, author_id, access_token):
+def remove_author_from_book(book_id, author_id, access_token, govdatahub = 'localhost:5000'):
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}",
     }
-    url = f"http://localhost:5000/books/{book_id}/authors"
+    url = f"http://{govdatahub}/books/{book_id}/authors"
     payload = {"author_id": author_id}
     try:
         response = requests.delete(url, headers=headers, json=payload)
@@ -60,12 +61,12 @@ def remove_author_from_book(book_id, author_id, access_token):
 
 
 
-def book_get(book_id, access_token):
+def book_get(book_id, access_token, govdatahub = 'localhost:5000'):
     """
     GET /books/<id>
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"http://localhost:5000/books/{book_id}"
+    url = f"http://{govdatahub}/books/{book_id}"
     try:
         response = requests.get(url, headers=headers)
         return response.json()
@@ -73,12 +74,12 @@ def book_get(book_id, access_token):
         print(f"Error in `book_get` {e}")
 
 
-def book_update(book_id, json_data, access_token):
+def book_update(book_id, json_data, access_token, govdatahub = 'localhost:5000'):
     """
     PUT /books/<id>
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"http://localhost:5000/books/{book_id}"
+    url = f"http://{govdatahub}/books/{book_id}"
     try:
         response = requests.put(url, json=json_data, headers=headers)
         return response.json()
@@ -86,12 +87,12 @@ def book_update(book_id, json_data, access_token):
         print(f"Error in `book_update` {e}")
 
 
-def book_download(book_id, access_token):
+def book_download(book_id, access_token, govdatahub = 'localhost:5000'):
     """
     GET /download/<id>
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"http://localhost:5000/download/{book_id}"
+    url = f"http://{govdatahub}/download/{book_id}"
     try:
         response = requests.get(url, headers=headers)
         return response
@@ -99,12 +100,12 @@ def book_download(book_id, access_token):
         print(f"Error in `book_download` {e}")
 
 
-def book_delete(book_id, access_token):
+def book_delete(book_id, access_token, govdatahub = 'localhost:5000'):
     """
     DELETE /books/<id>
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"http://localhost:5000/books/{book_id}"
+    url = f"http://{govdatahub}/books/{book_id}"
     try:
         response = requests.delete(url, headers=headers)
         return response.json()
@@ -112,12 +113,12 @@ def book_delete(book_id, access_token):
         print(f"Error in `book_delete` {e}")
             
 
-def book_upload(file_path, access_token):
+def book_upload(file_path, access_token, govdatahub = 'localhost:5000'):
     """
     POST /upload
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = "http://localhost:5000/upload"
+    url = f"http://{govdatahub}/upload"
     json_data = {"title": file_path.split("/")[-1]}
     with open(file_path, "rb") as f:
         files = {"file": f}
@@ -129,12 +130,12 @@ def book_upload(file_path, access_token):
             print(f"Error in `book_upload` {e}")
 
 
-def books_get(access_token):
+def books_get(access_token, govdatahub = 'localhost:5000'):
     """
     GET /books
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = "http://localhost:5000/books"
+    url = f"http://{govdatahub}/books"
     try:
         response = requests.get(url, headers=headers)
         return response.json()
@@ -142,12 +143,12 @@ def books_get(access_token):
         print(f"Error in `books_get` {e}")
 
 
-def authors_get(access_token):
+def authors_get(access_token, govdatahub = 'localhost:5000'):
     """
     GET /authors
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = "http://localhost:5000/authors"
+    url = f"http://{govdatahub}/authors"
     try:
         response = requests.get(url, headers=headers)
         return response.json()
@@ -155,12 +156,12 @@ def authors_get(access_token):
         print(f"Error in `authors_get` {e}")
 
 
-def author_post(json_data, access_token):
+def author_post(json_data, access_token, govdatahub = 'localhost:5000'):
     """
     POST /authors
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = "http://localhost:5000/authors"
+    url = f"http://{govdatahub}/authors"
     try:
         response = requests.post(url, json=json_data, headers=headers)
         return response.json()
@@ -168,12 +169,12 @@ def author_post(json_data, access_token):
         print(f"Error in `author_post` {e}")
 
 
-def author_put(author_id, json_data, access_token):
+def author_put(author_id, json_data, access_token, govdatahub = 'localhost:5000'):
     """
     PUT /authors
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"http://localhost:5000/authors/{author_id}"
+    url = f"http://{govdatahub}/authors/{author_id}"
     try:
         response = requests.put(url, json=json_data, headers=headers)
         return response.json()
@@ -181,12 +182,12 @@ def author_put(author_id, json_data, access_token):
         print(f"Error in `author_put` {e}")
 
 
-def authors_delete(author_id, access_token):
+def authors_delete(author_id, access_token, govdatahub = 'localhost:5000'):
     """
     DELETE /authors/<id>
     """
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"http://localhost:5000/authors/{author_id}"
+    url = f"http://{govdatahub}/authors/{author_id}"
     try:
         response = requests.delete(url, headers=headers)
         return response.json()

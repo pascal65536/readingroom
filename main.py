@@ -70,7 +70,7 @@ def calculate_md5(file_path):
 @app.route("/")
 def index():
     books_list = list()
-    for book in AuthorModel.query.all()[:10]:
+    for book in BookModel.query.all()[:30]:
         books_list.append(book.as_dict())
     return jsonify(books_list)
 
@@ -596,8 +596,11 @@ api.add_resource(FileDownload, "/download/<string:book_id>")
 api.add_resource(BookAuthors, "/books/<string:book_id>/authors")
 api.add_resource(BookCategories, "/books/<string:book_id>/categories")
 
-
 if __name__ == "__main__":
+    DEBUG = False
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    if DEBUG:
+        app.run(debug=True)
+    else:
+        app.run(host='192.168.3.27', port=8001)
