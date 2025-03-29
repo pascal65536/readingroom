@@ -2,8 +2,9 @@ import os
 import requests
 import hashlib
 
-q = "Дэвид Сэломон. Сжатие данных, изображений и звука"
+q = "ISBN 978-5-4461-1675-1"
 url = f"https://www.googleapis.com/books/v1/volumes?q={q}"
+print(url)
 
 ret = requests.get(url)
 if ret.status_code == 200:
