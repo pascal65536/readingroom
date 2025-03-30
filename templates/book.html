@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+    <title>{{ book.title }} - Book Details</title>
+    <!-- Bootstrap CSS -->
+    <style>
+      .book-cover {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+      .book-details {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Main Content -->
+    <div class="container my-4">
+      <div class="row">
+        <div class="col-md-4">
+          <img src="{{ book.cover_image }}" class="img-fluid book-cover" alt="{{ book.title }}">
+        </div>
+        <div class="col-md-8">
+          <h2>{{ book.title[:-4] }}</h2>
+          <h5>by {{ book.author }}</h5>
+          <p class="book-details">
+            <strong>Author:</strong> {{ book.authors }}<br>
+            <strong>Published:</strong> {{ book.publication_date }}<br>
+            <strong>Publisher:</strong> {{ book.publisher }}<br>
+            <strong>Category:</strong> {{ book.categories }}<br>
+            <strong>ISBN:</strong> {{ book.isbn }}
+          </p>
+          <p>{{ book.description }}</p>
+        </div>
+      </div>
+    </div>
+
+{% endblock %}
