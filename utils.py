@@ -168,6 +168,19 @@ def author_post(json_data, access_token, govdatahub = 'localhost:5000'):
         print(f"Error in `author_post` {e}")
 
 
+def author_get(author_id, access_token, govdatahub = 'localhost:5000'):
+    """
+    GET /authors
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/authors/{author_id}"
+    try:
+        response = requests.get(url, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `author_put` {e}")
+
+
 def author_put(author_id, json_data, access_token, govdatahub = 'localhost:5000'):
     """
     PUT /authors
@@ -211,7 +224,7 @@ if __name__ == "__main__":
     json_data = {"name": "Ю.В. Китаев"}
     ret = author_post(json_data, access_token)
     author_id = ret.get("id")
-    assert ret=={'id': 1, 'name': 'Ю.В. Китаев', 'name_eng': None}, "Error in `author_post`"
+    assert ret == {'id': 1, 'name': 'Ю.В. Китаев', 'name_eng': None}, "Error in `author_post`"
     assert author_id == 1, "Error in `author_post`"
 
     # Обновление автора
@@ -232,7 +245,7 @@ if __name__ == "__main__":
     assert ret == {'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf'}, "Error in `book_upload`"
     assert book_id == '3091401a1c74bfd441ace8d420f1e524', "Error in `book_upload`"
     assert filename_orig == 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', "Error in `book_upload`"
-   
+    
     # Обновление книги
     json_data = {
         "title": "Перечень актуальных тематик диссертационных исследований в области наук об образовании",
@@ -270,7 +283,7 @@ if __name__ == "__main__":
     ret = add_author_to_book(book_id, author_id, access_token)
     assert ret.status_code == 200,  "Error in `add_author_to_book`"
     assert ret.json() == {'message': 'Author added to the book'},  "Error in `add_author_to_book`"
-
+    
     # Загрузка книги
     ret = book_get(book_id, access_token)
     assert ret == {'authors': [{'id': 1, 'name': 'Ю.В. Китаев', 'name_eng': 'Kitayev Yu. V.'}], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'},  "Error in `book_get`"
@@ -302,3 +315,9 @@ if __name__ == "__main__":
     # Удаление книги
     ret = book_delete(book_id, access_token)
     assert ret == {'message': 'Book deleted'}, "Error in `book_delete`"
+
+    # Удаление автора
+    for author in authors_get(access_token):
+        ret = authors_delete(author['id'], access_token)
+    ret = authors_get(access_token)
+    assert ret==[], "Error in `authors_get`"
