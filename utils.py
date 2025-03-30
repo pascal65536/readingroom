@@ -176,6 +176,7 @@ def author_get(author_id, access_token, govdatahub = 'localhost:5000'):
     url = f"http://{govdatahub}/authors/{author_id}"
     try:
         response = requests.get(url, headers=headers)
+        print(response)
         return response.json()
     except Exception as e:
         print(f"Error in `author_put` {e}")

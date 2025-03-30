@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container my-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Список книг</h1>
+            <a href="{{ url_for('create_book') }}" class="btn btn-success">Добавить книгу</a>
+        </div>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+            {% for book in books %}
+            <div class="col">
+                <div class="card h-100 d-flex">
+                    <div class="card-header">
+                        {{ book.id }}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ book.title }}</h5>
+                        <p class="card-text">{{ book.filename_orig }}</p>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('book', book_id=book.id) }}" class="btn btn-primary d-grid gap-2">Информация</a>
+                            <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-warning d-grid">Редактировать</a>
+                            <form action="{{ url_for('delete_book', book_id=book.id) }}" method="POST" class="d-grid">
+                                <button type="submit" class="btn btn-danger">Удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
