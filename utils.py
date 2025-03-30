@@ -59,6 +59,46 @@ def remove_author_from_book(book_id, author_id, access_token, govdatahub = 'loca
         print(f"Error in `add_author_to_book` {e}")
 
 
+def get_book_categories(book_id, access_token, govdatahub='localhost:5000'):
+    """
+    GET /books/<book_id>/categories
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/books/{book_id}/categories"
+    try:
+        response = requests.get(url, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `get_book_categories`: {e}")
+
+
+def add_category_to_book(book_id, category_id, access_token, govdatahub='localhost:5000'):
+    """
+    POST /books/<book_id>/categories
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/books/{book_id}/categories"
+    payload = {"category_id": category_id}
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `add_category_to_book`: {e}")
+
+
+def remove_category_from_book(book_id, category_id, access_token, govdatahub='localhost:5000'):
+    """
+    DELETE /books/<book_id>/categories
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/books/{book_id}/categories"
+    payload = {"category_id": category_id}
+    try:
+        response = requests.delete(url, json=payload, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `remove_category_from_book`: {e}")
+
 
 def book_get(book_id, access_token, govdatahub = 'localhost:5000'):
     """
@@ -205,6 +245,71 @@ def authors_delete(author_id, access_token, govdatahub = 'localhost:5000'):
         return response.json()
     except Exception as e:
         print(f"Error in `authors_delete` {e}")
+
+
+def categories_get(access_token, govdatahub='localhost:5000'):
+    """
+    GET /categories
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/categories"
+    try:
+        response = requests.get(url, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `categories_get`: {e}")
+
+
+def category_get(category_id, access_token, govdatahub='localhost:5000'):
+    """
+    GET /categories/<id>
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/categories/{category_id}"
+    try:
+        response = requests.get(url, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `category_get`: {e}")
+
+
+def category_post(json_data, access_token, govdatahub='localhost:5000'):
+    """
+    POST /categories
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/categories"
+    try:
+        response = requests.post(url, json=json_data, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `category_post`: {e}")
+
+
+def category_put(category_id, json_data, access_token, govdatahub='localhost:5000'):
+    """
+    PUT /categories/<id>
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/categories/{category_id}"
+    try:
+        response = requests.put(url, json=json_data, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `category_put`: {e}")
+
+
+def category_delete(category_id, access_token, govdatahub='localhost:5000'):
+    """
+    DELETE /categories/<id>
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/categories/{category_id}"
+    try:
+        response = requests.delete(url, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `category_delete`: {e}")
 
 
 # Пример использования
