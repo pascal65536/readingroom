@@ -1,9 +1,8 @@
-from utils import get_access_token, authors_get, author_post, author_get, author_put, authors_delete, categories_get, category_get, category_post, category_put, category_delete, get_book_categories, add_category_to_book, remove_category_from_book
+from utils import get_access_token, books_get, book_delete,book_upload, authors_get, author_post, author_get, author_put, authors_delete, categories_get, category_get, category_post, category_put, category_delete, get_book_categories, add_category_to_book, remove_category_from_book
 
 
 ret = get_access_token("user1", "password1")
 access_token = ret.get("access_token")
-print(access_token)
 
 ret = categories_get(access_token)
 for cat in ret:
@@ -29,15 +28,44 @@ json_data = {"name": "Современная классика"}
 ret = category_put(category_id, json_data, access_token)
 assert ret == {'id': 1, 'name': 'Современная классика'}, "Error in `category_put`"
 
-# Удаление категории
-ret = category_delete(category_id, access_token)
-assert ret == {'message': 'Category deleted'}, "Error in `category_delete`"
+# Книги
+for book in books_get(access_token):
+    ret = book_delete(book['id'], access_token)
+ret = books_get(access_token)
+assert ret==[], "Error in `books_get`"
+
+# Загрузка книги
+file_path = "fixtures/Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf"
+ret = book_upload(file_path, access_token)
+book_id = ret.get("id")
+filename_orig = ret.get("filename_orig")
+assert ret == {'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf'}, "Error in `book_upload`"
+assert book_id == '3091401a1c74bfd441ace8d420f1e524', "Error in `book_upload`"
+assert filename_orig == 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', "Error in `book_upload`"
+    
+
 
 # Добавление книги в категорию
-book_id = 1  # Пример ID книги
 ret = add_category_to_book(book_id, category_id, access_token)
-print("Книга добавлена в категорию:", ret)
+assert ret == {'message': 'Category added to the book'}, "Error in `add_category_to_book`"
+
+ret = add_category_to_book(book_id, category_id, access_token)
+assert ret == {'message': 'Category already added to the book'}, "Error in `add_category_to_book`"
 
 # Удаление книги из категории
 ret = remove_category_from_book(book_id, category_id, access_token)
-print("Книга удалена из категории:", ret)
+assert ret == {'message': 'Category removed from the book'}, "Error in `remove_category_from_book`"
+
+ret = remove_category_from_book(book_id, category_id, access_token)
+assert ret == {'message': 'Category not found in the book'}, "Error in `remove_category_from_book`"
+
+ret = category_delete(category_id, access_token)
+assert ret == {'message': 'Category deleted'}, "Error in `category_delete`"
+
+
+ret = category_delete(category_id, access_token)
+assert ret == {'message': 'Category not found'}, "Error in `category_delete`"
+
+# Удаление книги из категории
+ret = remove_category_from_book(book_id, category_id, access_token)
+assert ret == {'message': 'Category not found'}, "Error in `remove_category_from_book`"
