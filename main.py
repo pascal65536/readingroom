@@ -218,6 +218,7 @@ class CategoryList(Resource):
                 response.status_code = 500
                 return response
 
+        category_obj = CategoryModel.query.filter_by(name=name).first()
         response = jsonify(category_obj.as_dict())
         response.status_code = 200
         return response
