@@ -42,7 +42,6 @@ def authors():
     access_token_dct = get_access_token(*cridentials)
     access_token = access_token_dct.get("access_token")
     authors = authors_get(access_token, govdatahub=cridentials[2])
-    print(authors)
     return render_template("authors_lst.html", authors=authors)
 
 
@@ -51,7 +50,6 @@ def categories():
     access_token_dct = get_access_token(*cridentials)
     access_token = access_token_dct.get("access_token")
     categories = categories_get(access_token, govdatahub=cridentials[2])
-    print(categories)
     return render_template("categories_lst.html", categories=categories)
 
 
