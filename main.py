@@ -188,52 +188,96 @@ class Author(Resource):
 # Ресурсы для категорий
 class CategoryList(Resource):
     def get(self):
-        categories = load_json(app.config["DATA_FOLDER"], "categories.json")
-        return jsonify(categories)
+        categories = CategoryModel.query.all()
+        category_list = [category.as_dict() for category in categories]
+        return jsonify(category_list)
 
+    @jwt_required()
     def post(self):
-        categories = load_json(app.config["DATA_FOLDER"], "categories.json")
         new_category = request.get_json()
-        new_category["id"] = str(uuid.uuid4())
-        categories[new_category["id"]] = new_category
-        save_json(app.config["DATA_FOLDER"], "categories.json", categories)
-        response = jsonify(new_category)
-        response.status_code = 201
+        name = new_category.get("name")
+        if not name:
+            response = jsonify({"message": "Category name required"})
+            response.status_code = 400
+            return response
+
+        with app.app_context():
+            category_obj = CategoryModel.query.filter_by(name=name).first()
+            if category_obj:
+                response = jsonify({"message": "Category with this name already exists"})
+                response.status_code = 400
+                return response
+
+            category_obj = CategoryModel(name=name)
+            try:
+                db.session.add(category_obj)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                response = jsonify({"message": "Error adding category"})
+                response.status_code = 500
+                return response
+
+        category_obj = CategoryModel.query.filter_by(name=name).first()
+        response = jsonify(category_obj.as_dict())
+        response.status_code = 200
         return response
 
 
 class Category(Resource):
     def get(self, category_id):
-        categories = load_json(app.config["DATA_FOLDER"], "categories.json")
-        category = categories.get(category_id)
-        if not category:
-            response = jsonify({"message": "Category not found"})
-            response.status_code = 404
-            return response
-        return jsonify(category)
+        with app.app_context():
+            category = CategoryModel.query.filter_by(id=category_id).first()
+            if not category:
+                response = jsonify({"message": "Category not found"})
+                response.status_code = 404
+                return response
+            return jsonify(category.as_dict())
 
+    @jwt_required()
     def put(self, category_id):
-        categories = load_json(app.config["DATA_FOLDER"], "categories.json")
-        category = categories.get(category_id)
-        if not category:
-            response = jsonify({"message": "Category not found"})
-            response.status_code = 404
-            return response
-        updated_data = request.get_json()
-        categories[category_id].update(updated_data)
-        save_json(app.config["DATA_FOLDER"], "categories.json", categories)
-        return jsonify(categories[category_id]), 200
+        with app.app_context():
+            category = CategoryModel.query.filter_by(id=category_id).first()
+            if not category:
+                response = jsonify({"message": "Category not found"})
+                response.status_code = 404
+                return response
 
+            updated_data = request.get_json()
+            category.name = updated_data.get("name", category.name)
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                response = jsonify({"message": "Error updating category"})
+                response.status_code = 500
+                return response
+
+            response = jsonify(category.as_dict())
+            response.status_code = 200
+            return response
+
+    @jwt_required()
     def delete(self, category_id):
-        categories = load_json(app.config["DATA_FOLDER"], "categories.json")
-        if category_id not in categories:
-            response = jsonify({"message": "Category not found"})
-            response.status_code = 404
-            return response
-        del categories[category_id]
-        save_json(app.config["DATA_FOLDER"], "categories.json", categories)
-        return jsonify({"message": "Category deleted"}), 200
+        with app.app_context():
+            category = CategoryModel.query.filter_by(id=category_id).first()
+            if not category:
+                response = jsonify({"message": "Category not found"})
+                response.status_code = 404
+                return response
+            
+            try:
+                CategoryModel.query.filter_by(id=category_id).delete()
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                response = jsonify({"message": "Error deleting category"})
+                response.status_code = 500
+                return response
 
+            response = jsonify({"message": "Category deleted"})
+            response.status_code = 200
+            return response
 
 # Ресурсы для книг
 class BookList(Resource):
@@ -435,56 +479,80 @@ class BookCategories(Resource):
         with app.app_context():
             book = BookModel.query.filter_by(id=book_id).first()
             if not book:
-                return jsonify({"message": "Book not found"}), 404
-
+                response = jsonify({"message": "Book not found"})
+                response.status_code = 404
+                return response
+            
             categories = book.categories
-            return jsonify([category.as_dict() for category in categories]), 200
+            response = jsonify([category.as_dict() for category in categories])
+            response.status_code = 200
+            return response
 
     @jwt_required()
     def post(self, book_id):
         with app.app_context():
             book = BookModel.query.filter_by(id=book_id).first()
             if not book:
-                return jsonify({"message": "Book not found"}), 404
+                response = jsonify({"message": "Book not found"})
+                response.status_code = 404
+                return response
 
             category_data = request.get_json()
             category_id = category_data.get("category_id")
             if not category_id:
-                return jsonify({"message": "Category ID is required"}), 400
+                response = jsonify({"message": "Category ID is required"})
+                response.status_code = 400
+                return response
 
             category = CategoryModel.query.filter_by(id=category_id).first()
             if not category:
-                return jsonify({"message": "Category not found"}), 404
+                response = jsonify({"message": "Category not found"})
+                response.status_code = 404
+                return response
 
             if category in book.categories:
-                return jsonify({"message": "Category already added to the book"}), 400
+                response = jsonify({"message": "Category already added to the book"})
+                response.status_code = 400
+                return response
 
             book.categories.append(category)
             db.session.commit()
-            return jsonify({"message": "Category added to the book"}), 200
+            response = jsonify({"message": "Category added to the book"})
+            response.status_code = 200
+            return response
 
     @jwt_required()
     def delete(self, book_id):
         with app.app_context():
             book = BookModel.query.filter_by(id=book_id).first()
             if not book:
-                return jsonify({"message": "Book not found"}), 404
+                response = jsonify({"message": "Book not found"})
+                response.status_code = 404
+                return response
 
             category_data = request.get_json()
             category_id = category_data.get("category_id")
             if not category_id:
-                return jsonify({"message": "Category ID is required"}), 400
+                response = jsonify({"message": "Category ID is required"})
+                response.status_code = 400
+                return response
 
             category = CategoryModel.query.filter_by(id=category_id).first()
             if not category:
-                return jsonify({"message": "Category not found"}), 404
+                response = jsonify({"message": "Category not found"})
+                response.status_code = 404
+                return response
 
             if category not in book.categories:
-                return jsonify({"message": "Category not found in the book"}), 400
+                response = jsonify({"message": "Category not found in the book"})
+                response.status_code = 400
+                return response
 
             book.categories.remove(category)
             db.session.commit()
-            return jsonify({"message": "Category removed from the book"}), 200
+            response = jsonify({"message": "Category removed from the book"})
+            response.status_code = 200
+            return response
 
 
 class BookAuthors(Resource):
