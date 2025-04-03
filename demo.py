@@ -61,14 +61,16 @@ def book(book_id):
     return render_template("book.html", book=book)
 
 
-@app.route("/author/create", methods=["GET", "POST"])
+@app.route("/book/create", methods=["GET", "POST"])
 def create_book():
     pass
-@app.route("/author/create", methods=["GET", "POST"])
-def edit_book():
+
+@app.route("/book/<string:book_id>/edit", methods=["GET", "POST"])
+def edit_book(book_id):
     pass
-@app.route("/author/create", methods=["GET", "POST"])
-def delete_book():
+
+@app.route("/book/<string:book_id>/delete", methods=["GET", "POST"])
+def delete_book(book_id):
     pass
 
 
