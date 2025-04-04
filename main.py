@@ -66,6 +66,27 @@ def calculate_md5(file_path):
     return hash_md5.hexdigest()
 
 
+def upload(file, allowed_extensions={'jpg', 'jpeg', 'png', 'gif'}):
+    # Проверяем тип файла
+    ext = file.filename.rsplit(".", 1)[-1].lower() if file.filename else ''
+    if ext not in allowed_extensions:
+        return None, {"message": "File type not allowed"}
+    # Генерируем уникальный идентификатор и создаем путь для временного хранения
+    uid = str(uuid.uuid4())
+    new_filename = f"{uid}.{ext}"
+    cache_path = os.path.join(app.config["CACHE_FOLDER"], new_filename)
+    file.save(cache_path)
+    file_hash = calculate_md5(cache_path)
+    uid02 = file_hash[:2]
+    uid24 = file_hash[2:4]
+    folder_path = os.path.join(app.config["UPLOAD_FOLDER"], uid02, uid24)
+    os.makedirs(folder_path, exist_ok=True)
+    uid_filename = f"{file_hash}.{ext}"
+    file_path = os.path.join(folder_path, uid_filename)
+    shutil.move(cache_path, file_path)    
+    return file_path, {"message": "File uploaded successfully"}
+
+
 # Маршрут для корневого URL
 @app.route("/")
 def index():
@@ -279,6 +300,7 @@ class Category(Resource):
             response.status_code = 200
             return response
 
+
 # Ресурсы для книг
 class BookList(Resource):
     def get(self):
@@ -309,20 +331,30 @@ class Book(Resource):
             if not book:
                 response = jsonify({"message": "Book not found"})
                 response.status_code = 404
-                return response
+                return response            
             # Получаем данные для обновления
-            updated_data = request.get_json()
+            if request.is_json:
+                updated_data = request.get_json()
+                print("Received JSON data")
+            else:
+                # Извлекаем JSON-данные из multipart/form-data
+                updated_data = request.form.get("json_data", {})
+                try:
+                    updated_data = json.loads(updated_data)
+                except json.JSONDecodeError:
+                    updated_data = {}
+                print("Received form data with JSON")            
             # Обновляем поля книги, если они предоставлены
-            # book.author_id = updated_data.get("author_id", book.author_id)
-            # book.category_id = updated_data.get("category_id", book.category_id)
             book.title = updated_data.get("title", book.title)
             book.isbn = updated_data.get("isbn", book.isbn)
-            book.publication_date = updated_data.get(
-                "publication_date", book.publication_date
-            )
+            book.publication_date = updated_data.get("publication_date", book.publication_date)
             book.publisher = updated_data.get("publisher", book.publisher)
             book.description = updated_data.get("description", book.description)
-            book.cover_image = updated_data.get("cover_image", book.cover_image)
+            book.cover_image = updated_data.get("cover_image", book.cover_image)            
+            if "file" in request.files:       
+                book.cover_image, message = upload(request.files["file"])
+            else:
+                book.cover_image = updated_data.get("cover_image", book.cover_image)            
             # Пытаемся зафиксировать изменения в базе данных
             try:
                 db.session.commit()
@@ -330,11 +362,12 @@ class Book(Resource):
                 db.session.rollback()
                 response = jsonify({"message": "Error updating book"})
                 response.status_code = 500
-                return response
+                return response            
             # Возвращаем обновленные данные книги
             response = jsonify(book.as_dict())
             response.status_code = 200
             return response
+
 
     @jwt_required()
     def delete(self, book_id):
@@ -470,7 +503,6 @@ class FileDownload(Resource):
                 os.path.basename(book.file_path),
                 as_attachment=True,
             )
-
 
 
 class BookCategories(Resource):
@@ -650,6 +682,7 @@ class BookAuthors(Resource):
             response.status_code = 200
             return response    
 
+
 # Добавление ресурсов в API
 api = Api(app)
 api.add_resource(BookList, "/books")
@@ -665,7 +698,7 @@ api.add_resource(BookAuthors, "/books/<string:book_id>/authors")
 api.add_resource(BookCategories, "/books/<string:book_id>/categories")
 
 if __name__ == "__main__":
-    DEBUG = False
+    DEBUG = True
     with app.app_context():
         db.create_all()
     if DEBUG:

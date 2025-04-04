@@ -113,17 +113,28 @@ def book_get(book_id, access_token, govdatahub = 'localhost:5000'):
         print(f"Error in `book_get` {e}")
 
 
-def book_update(book_id, json_data, access_token, govdatahub = 'localhost:5000'):
+def book_update(book_id, json_data, access_token, govdatahub='localhost:5000', cover_image=None):
     """
     PUT /books/<id>
     """
     headers = {"Authorization": f"Bearer {access_token}"}
     url = f"http://{govdatahub}/books/{book_id}"
-    try:
-        response = requests.put(url, json=json_data, headers=headers)
-        return response.json()
-    except Exception as e:
-        print(f"Error in `book_update` {e}")
+    if cover_image:
+        # Отправляем multipart/form-data с файлом и JSON-данными
+        with open(cover_image, "rb") as f:
+            files = {"file": f}
+            try:
+                response = requests.put(url, files=files, data={"json_data": json.dumps(json_data)}, headers=headers)
+                return response.json()
+            except Exception as e:
+                print(f"Error in `book_update` with cover_image: {e}")
+    else:
+        # Отправляем только JSON-данные
+        try:
+            response = requests.put(url, json=json_data, headers=headers)
+            return response.json()
+        except Exception as e:
+            print(f"Error in `book_update` without cover_image: {e}")
 
 
 def book_download(book_id, access_token, govdatahub = 'localhost:5000'):
@@ -216,6 +227,7 @@ def author_get(author_id, access_token, govdatahub = 'localhost:5000'):
     url = f"http://{govdatahub}/authors/{author_id}"
     try:
         response = requests.get(url, headers=headers)
+        print(response)
         return response.json()
     except Exception as e:
         print(f"Error in `author_put` {e}")
@@ -315,6 +327,7 @@ def category_delete(category_id, access_token, govdatahub='localhost:5000'):
 # Пример использования
 if __name__ == "__main__":
     file_path = "fixtures/Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf"
+    cover_path = "fixtures/Перечень актуальных тематик диссертационных исследований в области наук об образовании.png"
     ret = get_access_token("user1", "password1")
     access_token = ret.get("access_token")
     assert len(access_token) == 331, "Error in `get_access_token`"
@@ -365,6 +378,14 @@ if __name__ == "__main__":
     # Загрузка книги
     ret = books_get(access_token)
     assert ret == [{'authors': [], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'}], "Error in `books_get`"
+    # Обновление обложки книги
+    json_data = dict()
+    ret = book_update(book_id, json_data, access_token, cover_image=cover_path)
+    assert ret == {'authors': [], 'categories': [], 'cover_image': 'uploads/92/6d/926d51b67bd5143a49f70513bef45952.png', 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'}, "Error in `book_update`"
+
+    # Загрузка книги
+    ret = books_get(access_token)
+    assert ret == [{'authors': [], 'categories': [], 'cover_image': 'uploads/92/6d/926d51b67bd5143a49f70513bef45952.png', 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'}], "Error in `books_get`"
 
     # Скачивание книги
     ret = book_download(book_id, access_token)
@@ -381,7 +402,7 @@ if __name__ == "__main__":
     # Загрузка книги
     ret = book_get(book_id, access_token)
     book_id = ret.get("id")
-    assert ret == {'authors': [], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'},  "Error in `book_get`"
+    assert ret == {'authors': [], 'categories': [], 'cover_image': 'uploads/92/6d/926d51b67bd5143a49f70513bef45952.png', 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'},  "Error in `book_get`"
     assert book_id == "3091401a1c74bfd441ace8d420f1e524",  "Error in `book_get`"
 
     # Добавление автора в список авторов книги
@@ -391,9 +412,8 @@ if __name__ == "__main__":
     
     # Загрузка книги
     ret = book_get(book_id, access_token)
-    assert ret == {'authors': [{'id': 1, 'name': 'Ю.В. Китаев', 'name_eng': 'Kitayev Yu. V.'}], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'},  "Error in `book_get`"
+    assert ret == {'authors': [{'id': 1, 'name': 'Ю.В. Китаев', 'name_eng': 'Kitayev Yu. V.'}], 'categories': [], 'cover_image': 'uploads/92/6d/926d51b67bd5143a49f70513bef45952.png', 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'},  "Error in `book_get`"
 
-    # Вторая попытка
     # Добавление автора в список авторов книги
     ret = add_author_to_book(book_id, author_id, access_token)
     assert ret.status_code == 400,  "Error in `add_author_to_book`"
@@ -401,7 +421,7 @@ if __name__ == "__main__":
 
     # Загрузка книги
     ret = book_get(book_id, access_token)
-    assert ret == {'authors': [{'id': 1, 'name': 'Ю.В. Китаев', 'name_eng': 'Kitayev Yu. V.'}], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'},  "Error in `book_get`"
+    assert ret == {'authors': [{'id': 1, 'name': 'Ю.В. Китаев', 'name_eng': 'Kitayev Yu. V.'}], 'categories': [], 'cover_image': 'uploads/92/6d/926d51b67bd5143a49f70513bef45952.png', 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'},  "Error in `book_get`"
 
     # Удаление автора из списка авторов книги
     ret = remove_author_from_book(book_id, author_id, access_token)
@@ -410,12 +430,61 @@ if __name__ == "__main__":
 
     # Загрузка книги
     ret = book_get(book_id, access_token)
-    assert ret == {'authors': [], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'},  "Error in `book_get`"
+    assert ret == {'authors': [], 'categories': [], 'cover_image': 'uploads/92/6d/926d51b67bd5143a49f70513bef45952.png', 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании'}, "Error in `book_get`"
 
     # Удаление автора из списка авторов книги
     ret = remove_author_from_book(book_id, author_id, access_token)
     assert ret.status_code == 400,  "Error in `remove_author_from_book`"
     assert ret.json() == {'message': 'Author not found in the book'}, "Error in `remove_author_from_book`"
+
+    # Удаление всех категорий
+    ret = categories_get(access_token)
+    for cat in ret:
+        category_delete(cat['id'], access_token)
+
+    ret = categories_get(access_token)
+    assert ret == [], "Error in `categories_get`"
+
+    ret = category_get(1, access_token)
+    assert ret == {'message': 'Category not found'}, "Error in `category_get`"
+
+    ret = category_delete(1, access_token)
+    assert ret == {'message': 'Category not found'}, "Error in `category_delete`"
+
+    # Создание новой категории
+    json_data = {"name": "Классика"}
+    ret = category_post(json_data, access_token)
+    assert ret == {'id': 1, 'name': 'Классика'}, "Error in `category_post`"
+    category_id = ret.get("id")
+
+    # Переименование категории
+    json_data = {"name": "Современная классика"}
+    ret = category_put(category_id, json_data, access_token)
+    assert ret == {'id': 1, 'name': 'Современная классика'}, "Error in `category_put`"
+
+    # Добавление книги в категорию
+    ret = add_category_to_book(book_id, category_id, access_token)
+    assert ret == {'message': 'Category added to the book'}, "Error in `add_category_to_book`"
+
+    ret = add_category_to_book(book_id, category_id, access_token)
+    assert ret == {'message': 'Category already added to the book'}, "Error in `add_category_to_book`"
+
+    # Удаление книги из категории
+    ret = remove_category_from_book(book_id, category_id, access_token)
+    assert ret == {'message': 'Category removed from the book'}, "Error in `remove_category_from_book`"
+
+    ret = remove_category_from_book(book_id, category_id, access_token)
+    assert ret == {'message': 'Category not found in the book'}, "Error in `remove_category_from_book`"
+
+    ret = category_delete(category_id, access_token)
+    assert ret == {'message': 'Category deleted'}, "Error in `category_delete`"
+
+    ret = category_delete(category_id, access_token)
+    assert ret == {'message': 'Category not found'}, "Error in `category_delete`"
+
+    # Удаление книги из категории
+    ret = remove_category_from_book(book_id, category_id, access_token)
+    assert ret == {'message': 'Category not found'}, "Error in `remove_category_from_book`"
 
     # Удаление книги
     ret = book_delete(book_id, access_token)

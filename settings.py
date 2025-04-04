@@ -1,0 +1,1 @@
+cridentials = ("user1", "password1", "govdatahub.ru")
