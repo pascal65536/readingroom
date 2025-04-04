@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from utils import (
-    book_get,
     get_access_token,
+    book_get,
     books_get,
+    book_update,
+    book_delete,
+    book_upload,
     author_post,
     author_put,
     authors_get,
@@ -13,12 +16,21 @@ from utils import (
 from settings import cridentials
 import os
 from flask_wtf import FlaskForm
-from forms import AuthorForm
+from forms import AuthorForm, BookForm, CategoryForm, UploadForm
 from types import SimpleNamespace
 
 
 app = Flask(__name__)
 app.secret_key = os.urandom(256)
+
+
+def allowed_file(filename):
+    extensions = {"pdf"}
+    if "." not in filename:
+        return False
+    if filename.rsplit(".", 1)[1].lower() not in extensions:
+        return False
+    return True
 
 
 @app.route("/")
@@ -63,17 +75,64 @@ def book(book_id):
 
 @app.route("/book/create", methods=["GET", "POST"])
 def create_book():
-    pass
+    cache = '_cache'
+    os.makedirs(cache, exist_ok=True)
+    form = UploadForm()
+    if request.method == "POST" and form.validate_on_submit():
+        file = form.file.data
+        if file and allowed_file(file.filename):
+            # Сохраняем файл в папку "_cache"
+            file_path = os.path.join(cache, file.filename)
+            file.save(file_path)
+            # Получаем токен доступа и загружаем книгу
+            access_token_dct = get_access_token(*cridentials)
+            access_token = access_token_dct.get("access_token")
+            ret = book_upload(file_path, access_token, govdatahub=cridentials[2])
+            book_id = ret["id"]
+            os.remove(file_path)
+            # Перенаправляем на страницу книги
+            return redirect(url_for("book", book_id=book_id))
+        else:
+            form.file.errors.append("Недопустимое расширение файла.")
+
+    return render_template("book_upload.html", form=form)
+
 
 @app.route("/book/<string:book_id>/edit", methods=["GET", "POST"])
 def edit_book(book_id):
-    pass
+    access_token_dct = get_access_token(*cridentials)
+    access_token = access_token_dct.get("access_token")
+    # Получение текущей книги
+    book_dict = book_get(book_id, access_token, govdatahub=cridentials[2])
+    # Преобразование словаря в объект
+    book = SimpleNamespace(**book_dict)
+    form = BookForm(obj=book)
+    if request.method == "POST" and form.validate_on_submit():
+        json_data = {
+            "title": form.title.data,
+            "isbn": form.isbn.data,
+            "publication_date": form.publication_date.data,
+            "publisher": form.publisher.data,
+            "description": form.description.data,
+            "telegram_link": form.telegram_link.data,
+            "telegram_file_id": form.telegram_file_id.data,
+            # "filename_orig": form.filename_orig.data,
+            # "filename_uid": form.filename_uid.data,
+            # "file_path": form.file_path.data,
+            # "cover_image": form.cover_image.data,
+        }
+        book_update(book_id, json_data, access_token, govdatahub=cridentials[2])
+        return redirect(url_for("books"))
+    return render_template("book_form.html", form=form, book=book)
+
 
 @app.route("/book/<string:book_id>/delete", methods=["GET", "POST"])
 def delete_book(book_id):
-    pass
-
-
+    if request.method == "POST":
+        access_token_dct = get_access_token(*cridentials)
+        access_token = access_token_dct.get("access_token")
+        book_delete(book_id, access_token, govdatahub=cridentials[2])
+    return redirect(url_for("books"))
 
 
 @app.route("/author/create", methods=["GET", "POST"])
@@ -85,7 +144,7 @@ def create_author():
         access_token_dct = get_access_token(*cridentials)
         access_token = access_token_dct.get("access_token")
         json_data = {"name": name, "name_eng": name_eng}
-        response = author_post(json_data, access_token, govdatahub=cridentials[2])
+        author_post(json_data, access_token, govdatahub=cridentials[2])
         return redirect(url_for("authors"))
     return render_template("author_form.html", form=form)
 
@@ -96,13 +155,12 @@ def delete_author():
     if request.method == "POST" and author_id:
         access_token_dct = get_access_token(*cridentials)
         access_token = access_token_dct.get("access_token")
-        response = authors_delete(author_id, access_token, govdatahub=cridentials[2])
+        authors_delete(author_id, access_token, govdatahub=cridentials[2])
     return redirect(url_for("authors"))
 
 
 @app.route("/author/<string:author_id>/edit", methods=["GET", "POST"])
 def edit_author(author_id):
-    print(author_id)
     access_token_dct = get_access_token(*cridentials)
     access_token = access_token_dct.get("access_token")
     # Получение текущего автора
@@ -112,7 +170,7 @@ def edit_author(author_id):
     form = AuthorForm(obj=author)
     if request.method == "POST" and form.validate_on_submit():
         json_data = {"name": form.name.data, "name_eng": form.name_eng.data}
-        response = author_put(author_id, json_data, access_token, govdatahub=cridentials[2])
+        author_put(author_id, json_data, access_token, govdatahub=cridentials[2])
         return redirect(url_for("authors"))
     return render_template("author_form.html", form=form, author=author)
 
