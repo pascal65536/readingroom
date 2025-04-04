@@ -29,29 +29,14 @@ import os
 app = Flask(__name__)
 app.secret_key = os.urandom(256)
 
-# books
-@app.route("/books/")
-def books():
-    access_token_dct = get_access_token(*cridentials)
-    access_token = access_token_dct.get("access_token")
-    books = books_get(access_token, govdatahub=cridentials[2])
-    return render_template("books_lst.html", books=books)
-
-@app.route("/book/<string:book_id>")
-def book(book_id):
-    access_token_dct = get_access_token(*cridentials)
-    access_token = access_token_dct.get("access_token")
-    book = book_get(book_id, access_token, govdatahub=cridentials[2])
-    return render_template("book.html", book=book)
 
 
-@app.route("/book/<string:book_id>/delete", methods=["GET", "POST"])
-def delete_book(book_id):
-    if request.method == "POST":
-        access_token_dct = get_access_token(*cridentials)
-        access_token = access_token_dct.get("access_token")
-        book_delete(book_id, access_token, govdatahub=cridentials[2])
-    return redirect(url_for("books"))
+def allowed_file(filename, extensions=set()):
+    if "." not in filename:
+        return False
+    if filename.rsplit(".", 1)[1].lower() not in extensions:
+        return False
+    return True
 
 
 # authors
@@ -75,6 +60,7 @@ def create_author():
         author_post(json_data, access_token, govdatahub=cridentials[2])
         return redirect(url_for("authors"))
     return render_template("author_form.html", form=form)
+
 
 @app.route("/author/delete", methods=["POST"])
 def delete_author():
@@ -110,6 +96,7 @@ def categories():
     categories = categories_get(access_token, govdatahub=cridentials[2])
     return render_template("categories_lst.html", categories=categories)
 
+
 @app.route("/category/create", methods=["GET", "POST"])
 def create_category():
     form = CategoryForm()
@@ -122,6 +109,7 @@ def create_category():
         return redirect(url_for("categories"))
     return render_template("category_form.html", form=form)
 
+
 @app.route("/category/delete", methods=["POST"])
 def delete_category():
     category_id = request.form.get("category_id")
@@ -130,6 +118,7 @@ def delete_category():
         access_token = access_token_dct.get("access_token")
         category_delete(category_id, access_token, govdatahub=cridentials[2])
     return redirect(url_for("categories"))
+
 
 @app.route("/category/<string:category_id>/edit", methods=["GET", "POST"])
 def edit_category(category_id):
@@ -146,8 +135,89 @@ def edit_category(category_id):
 
 
 
+# books
+@app.route("/books/")
+def books():
+    access_token_dct = get_access_token(*cridentials)
+    access_token = access_token_dct.get("access_token")
+    books = books_get(access_token, govdatahub=cridentials[2])
+    return render_template("books_lst.html", books=books)
 
+@app.route("/book/<string:book_id>")
+def book(book_id):
+    access_token_dct = get_access_token(*cridentials)
+    access_token = access_token_dct.get("access_token")
+    book = book_get(book_id, access_token, govdatahub=cridentials[2])
+    return render_template("book.html", book=book)
 
+@app.route("/book/<string:book_id>/delete", methods=["GET", "POST"])
+def delete_book(book_id):
+    if request.method == "POST":
+        access_token_dct = get_access_token(*cridentials)
+        access_token = access_token_dct.get("access_token")
+        book_delete(book_id, access_token, govdatahub=cridentials[2])
+    return redirect(url_for("books"))
+
+@app.route("/book/create", methods=["GET", "POST"])
+def create_book():
+    cache = '_cache'
+    os.makedirs(cache, exist_ok=True)
+    form = UploadForm()
+    if request.method == "POST" and form.validate_on_submit():
+        file = form.file.data
+        if file and allowed_file(file.filename, {'pdf'}):
+            file_path = os.path.join(cache, file.filename)
+            file.save(file_path)
+            access_token_dct = get_access_token(*cridentials)
+            access_token = access_token_dct.get("access_token")
+            ret = book_upload(file_path, access_token, govdatahub=cridentials[2])
+            book_id = ret["id"]
+            os.remove(file_path)
+            return redirect(url_for("book", book_id=book_id))
+        else:
+            form.file.errors.append("Недопустимое расширение файла.")
+
+    return render_template("book_upload.html", form=form)
+
+    # form = BookForm()
+    # if request.method == "POST" and form.validate_on_submit():
+    #     access_token_dct = get_access_token(*cridentials)
+    #     access_token = access_token_dct.get("access_token")
+    #     json_data = {
+    #         "title": form.title.data,
+    #         "isbn": form.isbn.data,
+    #         "publication_date": form.publication_date.data,
+    #         "publisher": form.publisher.data,
+    #         "description": form.description.data,
+    #         "telegram_link": form.telegram_link.data,
+    #         "telegram_file_id": form.telegram_file_id.data,
+    #     }   
+    #     book_post(json_data, access_token, govdatahub=cridentials[2])
+    #     return redirect(url_for("books"))
+    # return render_template("book_form.html", form=form)
+
+@app.route("/book/<string:book_id>/edit", methods=["GET", "POST"])
+def edit_book(book_id):
+    access_token_dct = get_access_token(*cridentials)
+    access_token = access_token_dct.get("access_token")
+    book_dict = book_get(book_id, access_token, govdatahub=cridentials[2])
+    book = SimpleNamespace(**book_dict)
+    form = BookForm(obj=book)
+    if request.method == "POST" and form.validate_on_submit():
+        json_data = {
+            "title": form.title.data if form.title.data else None,
+            "isbn": form.isbn.data if form.isbn.data else None,
+            "publication_date": form.publication_date.data if form.publication_date.data else None,
+            "publisher": form.publisher.data if form.publisher.data else None,
+            "description": form.description.data if form.description.data else None,
+            "telegram_link": form.telegram_link.data if form.telegram_link.data else None,
+            "telegram_file_id": form.telegram_file_id.data if form.telegram_file_id.data else None,
+        }        
+        print(json_data)
+        ret = book_update(book_id, json_data, access_token, govdatahub=cridentials[2])
+        print(ret)
+        return redirect(url_for("books"))
+    return render_template("book_form.html", form=form, book=book)
 
 
 

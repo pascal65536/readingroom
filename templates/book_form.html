@@ -10,20 +10,6 @@
     <form method="POST" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
 
-        {% if current_cover %}
-            <div class="mb-3">
-                <img src="{{ url_for('static', filename=current_cover) }}" 
-                     alt="Текущая обложка" 
-                     class="img-fluid" 
-                     style="max-width: 200px;">
-            </div>
-
-            <div class="mb-3 form-check">
-                {{ form.delete_cover(class="form-check-input") }}
-                {{ form.delete_cover.label(class="form-check-label") }}
-            </div>
-        {% endif %}
-
         <div class="mb-3">
             {{ form.title.label(class="form-label") }}
             {{ form.title(class="form-control") }}
@@ -84,12 +70,25 @@
             {% endif %}
         </div>
         
+
         <div class="mb-3">
-            {{ form.cover_image.label(class="form-label") }}
-            {{ form.cover_image(class="form-control") }}
-            {% if form.cover_image.errors %}
+            {{ form.telegram_link.label(class="form-label") }}
+            {{ form.telegram_link(class="form-control") }}
+            {% if form.telegram_link.errors %}
                 <div class="text-danger">
-                    {% for error in form.cover_image.errors %}
+                    {% for error in form.telegram_link.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.telegram_file_id.label(class="form-label") }}
+            {{ form.telegram_file_id(class="form-control") }}
+            {% if form.telegram_file_id.errors %}
+                <div class="text-danger">
+                    {% for error in form.telegram_file_id.errors %}
                         <p>{{ error }}</p>
                     {% endfor %}
                 </div>

@@ -112,27 +112,17 @@ def book_get(book_id, access_token, govdatahub = 'localhost:5000'):
         print(f"Error in `book_get` {e}")
 
 
-def book_update(book_id, json_data, access_token, govdatahub='localhost:5000', cover_image=None):
+def book_update(book_id, json_data, access_token, govdatahub='localhost:5000'):
     """
     PUT /books/<id>
     """
     headers = {"Authorization": f"Bearer {access_token}"}
     url = f"http://{govdatahub}/books/{book_id}"
-    if cover_image:
-        with open(cover_image, "rb") as f:
-            files = {"file": f}
-            data = {"json_data": json.dumps(json_data)}
-            try:
-                response = requests.put(url, files=files, data=data, headers=headers)
-                return response.json()
-            except Exception as e:
-                print(f"Error in `book_update` with cover_image: {e}")
-    else:
-        try:
-            response = requests.put(url, json=json_data, headers=headers)
-            return response.json()
-        except Exception as e:
-            print(f"Error in `book_update` without cover_image: {e}")
+    try:
+        response = requests.put(url, json=json_data, headers=headers)
+        return response.json()
+    except Exception as e:
+        print(f"Error in `book_update` without cover_image: {e}")
 
 
 def book_download(book_id, access_token, govdatahub = 'localhost:5000'):
