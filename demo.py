@@ -24,8 +24,7 @@ app = Flask(__name__)
 app.secret_key = os.urandom(256)
 
 
-def allowed_file(filename):
-    extensions = {"pdf"}
+def allowed_file(filename, extensions=set()):
     if "." not in filename:
         return False
     if filename.rsplit(".", 1)[1].lower() not in extensions:
@@ -80,7 +79,7 @@ def create_book():
     form = UploadForm()
     if request.method == "POST" and form.validate_on_submit():
         file = form.file.data
-        if file and allowed_file(file.filename):
+        if file and allowed_file(file.filename, {'pdf'}):
             # Сохраняем файл в папку "_cache"
             file_path = os.path.join(cache, file.filename)
             file.save(file_path)
@@ -100,6 +99,9 @@ def create_book():
 
 @app.route("/book/<string:book_id>/edit", methods=["GET", "POST"])
 def edit_book(book_id):
+    cache = '_cache'
+    os.makedirs(cache, exist_ok=True)
+
     access_token_dct = get_access_token(*cridentials)
     access_token = access_token_dct.get("access_token")
     # Получение текущей книги
@@ -107,6 +109,7 @@ def edit_book(book_id):
     # Преобразование словаря в объект
     book = SimpleNamespace(**book_dict)
     form = BookForm(obj=book)
+
     if request.method == "POST" and form.validate_on_submit():
         json_data = {
             "title": form.title.data,
@@ -116,12 +119,10 @@ def edit_book(book_id):
             "description": form.description.data,
             "telegram_link": form.telegram_link.data,
             "telegram_file_id": form.telegram_file_id.data,
-            # "filename_orig": form.filename_orig.data,
-            # "filename_uid": form.filename_uid.data,
-            # "file_path": form.file_path.data,
-            # "cover_image": form.cover_image.data,
         }
-        book_update(book_id, json_data, access_token, govdatahub=cridentials[2])
+        cover_image = form.cover_image.data
+
+        book_update(book_id, json_data, access_token, govdatahub=cridentials[2], cover_image=cover_image)
         return redirect(url_for("books"))
     return render_template("book_form.html", form=form, book=book)
 
