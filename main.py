@@ -354,11 +354,6 @@ class Book(Resource):
             book.description = updated_data.get("description", book.description)
             book.cover_image = updated_data.get("cover_image", book.cover_image)
             
-            if "file" in request.files:
-                book.cover_image, message = upload(request.files["file"])
-            else:
-                book.cover_image = updated_data.get("cover_image", book.cover_image)
-            
             # Добавление авторов и категорий
             authors = updated_data.get("authors", [])
             for author_name in authors:
@@ -752,7 +747,6 @@ class FileList(Resource):
         response = jsonify(fule_dct)
         response.status_code = 200
         return response
-
 
 
 class File(Resource):
