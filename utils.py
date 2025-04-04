@@ -386,6 +386,16 @@ if __name__ == "__main__":
     ret = book_update(book_id, json_data, access_token)
     assert ret == {'authors': [], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Список тем'}, "Error in `book_update`"
 
+    # Обновление книги
+    json_data = {"isbn": None} 
+    ret = book_update(book_id, json_data, access_token)
+    assert ret == {'authors': [], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': None, 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Список тем'}, "Error in `book_update`"
+
+    # Обновление книги
+    json_data = {"isbn": "ISBN 987-6-5432-2345-6"} 
+    ret = book_update(book_id, json_data, access_token)
+    assert ret == {'authors': [], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Список тем'}, "Error in `book_update`"
+
     ret = book_get(book_id, access_token)
     assert ret == {'authors': [], 'categories': [], 'cover_image': None, 'description': 'Предисловие и. о. вице-президента РАО, Председателя ВАК при Минобрнауки России В. М. Филиппова', 'file_path': 'uploads/30/91/3091401a1c74bfd441ace8d420f1e524.pdf', 'filename_orig': 'Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf', 'filename_uid': '3091401a1c74bfd441ace8d420f1e524.pdf', 'id': '3091401a1c74bfd441ace8d420f1e524', 'isbn': 'ISBN 987-6-5432-2345-6', 'publication_date': '2023', 'publisher': 'РОССИЙСКАЯ АКАДЕМИЯ ОБРАЗОВАНИЯ', 'telegram_file_id': None, 'telegram_link': None, 'title': 'Список тем'}, "Error in `book_get`"
  
