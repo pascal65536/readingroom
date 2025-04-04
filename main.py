@@ -174,7 +174,7 @@ class Author(Resource):
                 db.session.commit()
             except Exception as e:
                 db.session.rollback()
-                response = jsonify({"message": "Error updating book"})
+                response = jsonify({"message": "Error updating author"})
                 response.status_code = 500
                 return response
             # Возвращаем обновленные данные книги

@@ -5,15 +5,16 @@
     <h1 class="mb-4">{% if book %}Редактирование книги{% else %}Создание книги{% endif %}</h1>
     <form method="POST" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
+        
         <div class="mb-3">
-            {{ form.title.label(class="form-label") }}
+            {{ form.title.label(class="form-label") }}<br>
             {{ form.title(class="form-control") }}
             {% if form.title.errors %}
-                <div class="text-danger">
+                <ul class="errors">
                     {% for error in form.title.errors %}
-                        {{ error }}
+                        <li>{{ error }}</li>
                     {% endfor %}
-                </div>
+                </ul>
             {% endif %}
         </div>
 
@@ -90,23 +91,22 @@
         </div>
 
         <div class="mb-3">
-            {{ form.cover_image.label(class="form-label") }}
-            {{ form.cover_image(class="form-control") }}
+            {{ form.cover_image.label }}<br>
+            {{ form.cover_image() }}
             {% if form.cover_image.errors %}
-                <div class="text-danger">
+                <ul class="errors">
                     {% for error in form.cover_image.errors %}
-                        {{ error }}
+                        <li>{{ error }}</li>
                     {% endfor %}
-                </div>
+                </ul>
             {% endif %}
         </div>
-
-        <h3>Авторы</h3>
-        {{ form.authors }}
-
-        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
-        <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
-    </form>      
+        
+        <div class="mb-3">
+            {{ form.submit() }}
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
 </div>
 
 {% endblock %}

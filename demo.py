@@ -132,6 +132,8 @@ def edit_book(book_id):
 
         # Обновляем данные книги
         response = book_update(book_id, json_data, access_token, govdatahub=cridentials[2], cover_image=file_path)
+        print(response)
+        
         if file_path and os.path.exists(file_path):
             os.remove(file_path)
 
