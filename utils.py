@@ -3,7 +3,6 @@ import json
 import os
 
 
-
 def get_access_token(username, password, govdatahub='localhost:5000'):
     """
     POST /login
@@ -120,16 +119,15 @@ def book_update(book_id, json_data, access_token, govdatahub='localhost:5000', c
     headers = {"Authorization": f"Bearer {access_token}"}
     url = f"http://{govdatahub}/books/{book_id}"
     if cover_image:
-        # Отправляем multipart/form-data с файлом и JSON-данными
         with open(cover_image, "rb") as f:
             files = {"file": f}
+            data = {"json_data": json.dumps(json_data)}
             try:
-                response = requests.put(url, files=files, data={"json_data": json.dumps(json_data)}, headers=headers)
+                response = requests.put(url, files=files, data=data, headers=headers)
                 return response.json()
             except Exception as e:
                 print(f"Error in `book_update` with cover_image: {e}")
     else:
-        # Отправляем только JSON-данные
         try:
             response = requests.put(url, json=json_data, headers=headers)
             return response.json()
@@ -246,7 +244,7 @@ def author_put(author_id, json_data, access_token, govdatahub = 'localhost:5000'
         print(f"Error in `author_put` {e}")
 
 
-def authors_delete(author_id, access_token, govdatahub = 'localhost:5000'):
+def author_delete(author_id, access_token, govdatahub = 'localhost:5000'):
     """
     DELETE /authors/<id>
     """
@@ -324,6 +322,43 @@ def category_delete(category_id, access_token, govdatahub='localhost:5000'):
         print(f"Error in `category_delete`: {e}")
 
 
+def file_upload(file_path, access_token, govdatahub='localhost:5000'):
+    """
+    POST /files
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/files"
+    json_data = {"title": file_path.split("/")[-1]}
+    with open(file_path, "rb") as f:
+        files = {"file": f}
+        data = {"json_data": json.dumps(json_data)}
+        try:
+            response = requests.post(url, files=files, data=data, headers=headers)
+            return response.json()
+        except Exception as e:
+            print(f"Error in `book_upload` {e}")
+
+
+def file_download(file_id, access_token, govdatahub='localhost:5000'):
+    """
+    GET /file/<id>
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"http://{govdatahub}/file/{file_id}"
+    try:
+        response = requests.get(url, headers=headers)
+        return response
+    except Exception as e:
+        print(f"Error in `book_download` {e}")
+
+
+# Вспомогательная функция для загрузки файлов с сервера
+def download_file(url: str, destination: str):
+    response = requests.get(url)
+    with open(destination, "wb") as f:
+        f.write(response.content)
+
+    
 # Пример использования
 if __name__ == "__main__":
     file_path = "fixtures/Перечень актуальных тематик диссертационных исследований в области наук об образовании.pdf"

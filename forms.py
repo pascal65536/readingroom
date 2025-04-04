@@ -1,10 +1,11 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, FileField, FieldList, FormField
+from wtforms import StringField, SubmitField, TextAreaField, FieldList, FormField, BooleanField
 from wtforms.validators import DataRequired, Length, URL, Optional
+from flask_wtf.file import FileAllowed, FileField, FileRequired
 
 
 class UploadForm(FlaskForm):
-    file = FileField("Файл", validators=[DataRequired()])
+    file = FileField("Файл (PDF)", validators=[DataRequired()])
     submit = SubmitField("Загрузить")
 
 
@@ -18,19 +19,15 @@ class AuthorForm(FlaskForm):
     submit = SubmitField("Сохранить")
 
 class BookForm(FlaskForm):
-    title = StringField("Название", validators=[DataRequired(), Length(max=200)])
-    filename_orig = StringField("Оригинальное имя файла", validators=[DataRequired(), Length(max=100)])
-    filename_uid = StringField("Новое имя файла", validators=[DataRequired(), Length(max=40)])
-    file_path = StringField("Путь к файлу", validators=[DataRequired(), Length(max=200)])
-    isbn = StringField("ISBN")
-    publication_date = StringField("Дата издания")
-    publisher = StringField('Издательство', validators=[Length(max=200)])
-    description = TextAreaField("Описание")
-    telegram_link = StringField('Ссылка на Telegram', validators=[Optional(), URL()])
-    telegram_file_id = StringField('File ID в Telegram')
-    cover_image = FileField('Изображение обложки', validators=[Optional()])
-    # authors = FieldList(FormField(AuthorForm), min_entries=1, max_entries=20)
-    submit = SubmitField('Сохранить изменения')
-
-
-
+    title = StringField('Название', validators=[DataRequired(), Length(max=200)])
+    isbn = StringField('ISBN', validators=[Length(max=20)])
+    publication_date = StringField('Дата публикации', validators=[Length(max=20)])
+    publisher = StringField('Издатель', validators=[Length(max=200)])
+    telegram_link = StringField('Telegram Link', validators=[Length(max=200)])
+    telegram_file_id = StringField('Telegram File ID', validators=[Length(max=200)])
+    authors = StringField('Authors (comma separated)', validators=[Length(max=500)])
+    categories = StringField('Categories (comma separated)', validators=[Length(max=500)])
+    description = TextAreaField('Описание')
+    cover_image = FileField('Обложка книги', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Только изображения!')])
+    delete_cover = BooleanField('Удалить текущую обложку')
+    submit = SubmitField('Сохранить')
