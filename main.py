@@ -13,9 +13,7 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 
 
 app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'  # Каталог, где хранятся обложки
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = 'uploads'  # Каталог, где хранятся обложки
 app.config["DATA_FOLDER"] = "data"
 app.config["CACHE_FOLDER"] = "_cache"
 app.config["SECRET_KEY"] = os.urandom(256)
@@ -796,7 +794,7 @@ api.add_resource(BookAuthors, "/books/<string:book_id>/authors")
 api.add_resource(BookCategories, "/books/<string:book_id>/categories")
 
 if __name__ == "__main__":
-    DEBUG = True
+    DEBUG = False
     with app.app_context():
         db.create_all()
     if DEBUG:
