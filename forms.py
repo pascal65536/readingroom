@@ -13,10 +13,12 @@ class CategoryForm(FlaskForm):
     name = StringField("Название", validators=[DataRequired(), Length(max=100)])
     submit = SubmitField("Сохранить")
 
+
 class AuthorForm(FlaskForm):
     name = StringField("Имя", validators=[DataRequired(message="Имя обязательно для заполнения."), Length(max=100, message="Имя не должно превышать 100 символов."),],)
     name_eng = StringField("Имя на английском",)
     submit = SubmitField("Сохранить")
+
 
 class BookForm(FlaskForm):
     title = StringField('Название', validators=[DataRequired(), Length(max=200)])

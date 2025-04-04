@@ -16,6 +16,7 @@ from utils import (
     category_post,
     category_put,
     category_delete,
+    file_upload,
 )
 from settings import cridentials
 from flask_wtf import FlaskForm
@@ -176,25 +177,7 @@ def create_book():
             return redirect(url_for("book", book_id=book_id))
         else:
             form.file.errors.append("Недопустимое расширение файла.")
-
     return render_template("book_upload.html", form=form)
-
-    # form = BookForm()
-    # if request.method == "POST" and form.validate_on_submit():
-    #     access_token_dct = get_access_token(*cridentials)
-    #     access_token = access_token_dct.get("access_token")
-    #     json_data = {
-    #         "title": form.title.data,
-    #         "isbn": form.isbn.data,
-    #         "publication_date": form.publication_date.data,
-    #         "publisher": form.publisher.data,
-    #         "description": form.description.data,
-    #         "telegram_link": form.telegram_link.data,
-    #         "telegram_file_id": form.telegram_file_id.data,
-    #     }   
-    #     book_post(json_data, access_token, govdatahub=cridentials[2])
-    #     return redirect(url_for("books"))
-    # return render_template("book_form.html", form=form)
 
 @app.route("/book/<string:book_id>/edit", methods=["GET", "POST"])
 def edit_book(book_id):
@@ -213,11 +196,37 @@ def edit_book(book_id):
             "telegram_link": form.telegram_link.data if form.telegram_link.data else None,
             "telegram_file_id": form.telegram_file_id.data if form.telegram_file_id.data else None,
         }        
-        print(json_data)
         ret = book_update(book_id, json_data, access_token, govdatahub=cridentials[2])
-        print(ret)
         return redirect(url_for("books"))
     return render_template("book_form.html", form=form, book=book)
+
+
+# cover_book file_upload
+@app.route("/book/<string:book_id>/cover", methods=["GET", "POST"])
+def cover_book(book_id):
+    cache = '_cache'
+    os.makedirs(cache, exist_ok=True)
+    access_token_dct = get_access_token(*cridentials)
+    access_token = access_token_dct.get("access_token")
+    book = book_get(book_id, access_token, govdatahub=cridentials[2])    
+    form = UploadForm()
+    if request.method == "POST" and form.validate_on_submit():
+        file = form.file.data
+        if file and allowed_file(file.filename, {'jpg', 'png', 'jpeg'}):
+            file_path = os.path.join(cache, file.filename)
+            file.save(file_path)
+            access_token_dct = get_access_token(*cridentials)
+            access_token = access_token_dct.get("access_token")
+            ret = file_upload(file_path, access_token, govdatahub=cridentials[2])
+            os.remove(file_path)
+            # Обновление книги
+            json_data = {"cover_image": ret["file_path"]} 
+            ret = book_update(book_id, json_data, access_token)
+            print(ret)
+            return redirect(url_for("book", book_id=book_id))
+        else:
+            form.file.errors.append("Недопустимое расширение файла.")
+    return render_template("file_upload.html", form=form, book=book)
 
 
 
