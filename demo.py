@@ -219,6 +219,8 @@ def cover_book(book_id):
             access_token = access_token_dct.get("access_token")
             ret = file_upload(file_path, access_token, govdatahub=cridentials[2])
             os.remove(file_path)
+            import ipdb; ipdb.sset_trace()
+            
             # Обновление книги
             json_data = {"cover_image": ret["file_path"]} 
             ret = book_update(book_id, json_data, access_token)
