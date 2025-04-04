@@ -331,7 +331,8 @@ class Book(Resource):
             if not book:
                 response = jsonify({"message": "Book not found"})
                 response.status_code = 404
-                return response            
+                return response
+            
             # Получаем данные для обновления
             if request.is_json:
                 updated_data = request.get_json()
@@ -343,18 +344,42 @@ class Book(Resource):
                     updated_data = json.loads(updated_data)
                 except json.JSONDecodeError:
                     updated_data = {}
-                print("Received form data with JSON")            
+                print("Received form data with JSON")
+            
             # Обновляем поля книги, если они предоставлены
             book.title = updated_data.get("title", book.title)
             book.isbn = updated_data.get("isbn", book.isbn)
             book.publication_date = updated_data.get("publication_date", book.publication_date)
             book.publisher = updated_data.get("publisher", book.publisher)
             book.description = updated_data.get("description", book.description)
-            book.cover_image = updated_data.get("cover_image", book.cover_image)            
-            if "file" in request.files:       
+            book.cover_image = updated_data.get("cover_image", book.cover_image)
+            
+            if "file" in request.files:
                 book.cover_image, message = upload(request.files["file"])
             else:
-                book.cover_image = updated_data.get("cover_image", book.cover_image)            
+                book.cover_image = updated_data.get("cover_image", book.cover_image)
+            
+            # Добавление авторов и категорий
+            authors = updated_data.get("authors", [])
+            for author_name in authors:
+                author = Author.query.filter_by(name=author_name).first()
+                if not author:
+                    author = Author(name=author_name)
+                    db.session.add(author)
+                    db.session.commit()
+                if author not in book.authors:
+                    book.authors.append(author)
+            
+            categories = updated_data.get("categories", [])
+            for category_name in categories:
+                category = Category.query.filter_by(name=category_name).first()
+                if not category:
+                    category = Category(name=category_name)
+                    db.session.add(category)
+                    db.session.commit()
+                if category not in book.categories:
+                    book.categories.append(category)
+            
             # Пытаемся зафиксировать изменения в базе данных
             try:
                 db.session.commit()
@@ -362,12 +387,12 @@ class Book(Resource):
                 db.session.rollback()
                 response = jsonify({"message": "Error updating book"})
                 response.status_code = 500
-                return response            
+                return response
+            
             # Возвращаем обновленные данные книги
             response = jsonify(book.as_dict())
             response.status_code = 200
             return response
-
 
     @jwt_required()
     def delete(self, book_id):

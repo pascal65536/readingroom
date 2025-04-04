@@ -14,10 +14,11 @@ from utils import (
     categories_get,
 )
 from settings import cridentials
-import os
 from flask_wtf import FlaskForm
 from forms import AuthorForm, BookForm, CategoryForm, UploadForm
 from types import SimpleNamespace
+from werkzeug.utils import secure_filename
+import os
 
 
 app = Flask(__name__)
@@ -96,14 +97,14 @@ def create_book():
 
     return render_template("book_upload.html", form=form)
 
-
 @app.route("/book/<string:book_id>/edit", methods=["GET", "POST"])
 def edit_book(book_id):
     cache = '_cache'
-    os.makedirs(cache, exist_ok=True)
+    os.makedirs(cache, exist_ok=True)  # Создаем папку _cache, если она не существует
 
     access_token_dct = get_access_token(*cridentials)
     access_token = access_token_dct.get("access_token")
+    
     # Получение текущей книги
     book_dict = book_get(book_id, access_token, govdatahub=cridentials[2])
     # Преобразование словаря в объект
@@ -120,12 +121,27 @@ def edit_book(book_id):
             "telegram_link": form.telegram_link.data,
             "telegram_file_id": form.telegram_file_id.data,
         }
+
+        file_path = None
         cover_image = form.cover_image.data
+        if cover_image:
+            # Обработка загрузки изображения
+            filename = secure_filename(cover_image.filename)
+            file_path = os.path.join(cache, filename)
+            cover_image.save(file_path)
 
-        book_update(book_id, json_data, access_token, govdatahub=cridentials[2], cover_image=cover_image)
+        # Обновляем данные книги
+        response = book_update(book_id, json_data, access_token, govdatahub=cridentials[2], cover_image=file_path)
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+
+        if response.get("message") == "Book not found":
+            # Обработка ошибки, если книга не найдена
+            return redirect(url_for("books"))
+        
         return redirect(url_for("books"))
+    
     return render_template("book_form.html", form=form, book=book)
-
 
 @app.route("/book/<string:book_id>/delete", methods=["GET", "POST"])
 def delete_book(book_id):
