@@ -13,7 +13,9 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 
 
 app = Flask(__name__)
-app.config["UPLOAD_FOLDER"] = "uploads"
+UPLOAD_FOLDER = 'uploads'  # Каталог, где хранятся обложки
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config["DATA_FOLDER"] = "data"
 app.config["CACHE_FOLDER"] = "_cache"
 app.config["SECRET_KEY"] = os.urandom(256)
@@ -708,6 +710,73 @@ class BookAuthors(Resource):
             return response    
 
 
+class FileList(Resource):
+    @jwt_required()
+    def post(self):
+        # Проверяем наличие файла в запросе
+        if "file" not in request.files:
+            response = jsonify({"message": "No file part"})
+            response.status_code = 400
+            return response
+        file = request.files["file"]
+        # Проверяем, выбран ли файл
+        if file.filename == "":
+            response = jsonify({"message": "No selected file"})
+            response.status_code = 400
+            return response
+        # Проверяем тип файла
+        ext = file.filename.rsplit(".", 1)[-1].lower()
+        if ext not in {"pdf", "jpg", "png"}:
+            response = jsonify({"message": "File type not allowed"})
+            response.status_code = 400
+            return response
+        # Генерируем уникальный идентификатор и создаем путь для временного хранения
+        uid = str(uuid.uuid4())
+        new_filename = f"{uid}.{ext}"
+        cache_path = os.path.join(app.config["CACHE_FOLDER"], new_filename)
+        file.save(cache_path)
+        file_hash = calculate_md5(cache_path)
+        uid02 = file_hash[:2]
+        uid24 = file_hash[2:4]
+        folder_path = os.path.join(app.config["UPLOAD_FOLDER"], uid02, uid24)
+        os.makedirs(folder_path, exist_ok=True)
+        uid_filename = f"{file_hash}.{ext}"
+        file_path = os.path.join(folder_path, uid_filename)
+        shutil.move(cache_path, file_path)
+        # Обновляем данные о книге с информацией о файле
+        fule_dct = {
+                "id": file_hash,
+                "filename_orig": file.filename,
+                "filename_uid": uid_filename,
+                "file_path": file_path,
+            }
+        # Возвращаем данные о добавленном файле
+        response = jsonify(fule_dct)
+        response.status_code = 200
+        return response
+
+
+
+class File(Resource):
+    @jwt_required()
+    def get(self, filename):
+        with app.app_context():
+            uid02 = filename[:2]
+            uid24 = filename[2:4]
+            folder_path = os.path.join(app.config["UPLOAD_FOLDER"], uid02, uid24)
+            os.makedirs(folder_path, exist_ok=True)
+            file_path = os.path.join(folder_path, filename)
+            if not os.path.exists(file_path):
+                response = jsonify({"message": "File not found on server"})
+                response.status_code = 404
+                return response
+            return send_from_directory(
+                os.path.dirname(file_path),
+                os.path.basename(file_path),
+                as_attachment=True,
+            )
+
+
 # Добавление ресурсов в API
 api = Api(app)
 api.add_resource(BookList, "/books")
@@ -716,6 +785,10 @@ api.add_resource(AuthorList, "/authors")
 api.add_resource(Author, "/authors/<string:author_id>")
 api.add_resource(CategoryList, "/categories")
 api.add_resource(Category, "/categories/<string:category_id>")
+
+api.add_resource(FileList, "/files")
+api.add_resource(File, "/file/<string:filename>")
+
 api.add_resource(FileUpload, "/upload")
 api.add_resource(FileDownload, "/download/<string:book_id>")
 
@@ -723,7 +796,7 @@ api.add_resource(BookAuthors, "/books/<string:book_id>/authors")
 api.add_resource(BookCategories, "/books/<string:book_id>/categories")
 
 if __name__ == "__main__":
-    DEBUG = False
+    DEBUG = True
     with app.app_context():
         db.create_all()
     if DEBUG:
