@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <h1 class="mb-4">{% if book %}Редактирование книги{% else %}Создание книги{% endif %}</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-control") }}
+            {% if form.title.errors %}
+                <div class="text-danger">
+                    {% for error in form.title.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.isbn.label(class="form-label") }}
+            {{ form.isbn(class="form-control") }}
+            {% if form.isbn.errors %}
+                <div class="text-danger">
+                    {% for error in form.isbn.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.publication_date.label(class="form-label") }}
+            {{ form.publication_date(class="form-control") }}
+            {% if form.publication_date.errors %}
+                <div class="text-danger">
+                    {% for error in form.publication_date.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.publisher.label(class="form-label") }}
+            {{ form.publisher(class="form-control") }}
+            {% if form.publisher.errors %}
+                <div class="text-danger">
+                    {% for error in form.publisher.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.telegram_link.label(class="form-label") }}
+            {{ form.telegram_link(class="form-control") }}
+            {% if form.telegram_link.errors %}
+                <div class="text-danger">
+                    {% for error in form.telegram_link.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.telegram_file_id.label(class="form-label") }}
+            {{ form.telegram_file_id(class="form-control") }}
+            {% if form.telegram_file_id.errors %}
+                <div class="text-danger">
+                    {% for error in form.telegram_file_id.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control") }}
+            {% if form.description.errors %}
+                <div class="text-danger">
+                    {% for error in form.description.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.cover_image.label(class="form-label") }}
+            {{ form.cover_image(class="form-control") }}
+            {% if form.cover_image.errors %}
+                <div class="text-danger">
+                    {% for error in form.cover_image.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <h3>Авторы</h3>
+        {{ form.authors }}
+
+        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+    </form>      
+</div>
+
+{% endblock %}

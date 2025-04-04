@@ -5,6 +5,8 @@ class Author(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     name_eng = db.Column(db.String(100), nullable=True)
+    # birth_date = db.Column(db.String(20), nullable=True)
+    # biography = db.Column(db.Text, nullable=True)
     books = db.relationship('Book', secondary='book_authors', back_populates='authors')
 
     def as_dict(self):

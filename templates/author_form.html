@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <h1 class="mb-4">{% if author %}Редактирование автора{% else %}Создание автора{% endif %}</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control") }}
+            {% if form.name.errors %}
+                <div class="text-danger">
+                    {% for error in form.name.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.name_eng.label(class="form-label") }}
+            {{ form.name_eng(class="form-control") }}
+            {% if form.name_eng.errors %}
+                <div class="text-danger">
+                    {% for error in form.name_eng.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+    </form>      
+</div>
+
+{% endblock %}
