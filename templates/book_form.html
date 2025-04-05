@@ -23,6 +23,30 @@
         </div>
 
         <div class="mb-3">
+            {{ form.authors.label(class="form-label") }}
+            {{ form.authors(class="form-control") }}
+            {% if form.authors.errors %}
+                <div class="text-danger">
+                    {% for error in form.authors.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}            
+        </div>
+
+        <div class="mb-3">
+            {{ form.categories.label(class="form-label") }}
+            {{ form.categories(class="form-control") }}
+            {% if form.categories.errors %}
+                <div class="text-danger">
+                    {% for error in form.categories.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}            
+        </div>
+
+        <div class="mb-3">
             {{ form.isbn.label(class="form-label") }}
             {{ form.isbn(class="form-control") }}
             {% if form.isbn.errors %}

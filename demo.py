@@ -18,12 +18,13 @@ from utils import (
     category_delete,
     file_upload,
     file_download,
+    add_category_to_book,
+    add_author_to_book,
 )
 from settings import cridentials
-from flask_wtf import FlaskForm
 from types import SimpleNamespace
 from forms import AuthorForm, BookForm, CategoryForm, UploadForm
-from werkzeug.utils import secure_filename
+from wtforms import SelectField
 import requests
 import os
 
@@ -141,8 +142,6 @@ def edit_category(category_id):
         return redirect(url_for("categories"))
     return render_template("category_form.html", form=form, category=category)
 
-
-
 # books
 @app.route("/books/")
 def books():
@@ -198,9 +197,18 @@ def create_book():
 def edit_book(book_id):
     access_token_dct = get_access_token(*cridentials)
     access_token = access_token_dct.get("access_token")
+    authors = authors_get(access_token, govdatahub=cridentials[2])
+    categories = categories_get(access_token, govdatahub=cridentials[2])
     book_dict = book_get(book_id, access_token, govdatahub=cridentials[2])
     book = SimpleNamespace(**book_dict)
     form = BookForm(obj=book)
+
+    # Добавляем поля authors и categories непосредственно перед рендерингом шаблона
+    for author in authors:
+        form.authors.choices.append((author.get("id"), author.get("name")))
+    for category in categories:
+        form.categories.choices.append((category.get("id"), category.get("name")))
+        
     if request.method == "POST" and form.validate_on_submit():
         json_data = {
             "title": form.title.data if form.title.data else None,
@@ -212,7 +220,15 @@ def edit_book(book_id):
             "telegram_file_id": form.telegram_file_id.data if form.telegram_file_id.data else None,
         }        
         ret = book_update(book_id, json_data, access_token, govdatahub=cridentials[2])
+        
+        for category_id in form.categories.data:
+            ret = add_category_to_book(book_id, category_id, access_token, govdatahub=cridentials[2])
+
+        for author_id in form.authors.data:
+            ret = add_author_to_book(book_id, author_id, access_token, govdatahub=cridentials[2])
+
         return redirect(url_for("books"))
+
     return render_template("book_form.html", form=form, book=book)
 
 # cover_book file_upload
