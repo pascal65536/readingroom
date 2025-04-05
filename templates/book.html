@@ -1,30 +1,69 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} 
 
-<!-- Main Content -->
+{% block content %}
 <div class="container mt-5">
   <div class="row">
+    <!-- Левая колонка: Изображение обложки -->
     <div class="col-md-4">
-      <img src="{{ book.cover_image }}" class="img-fluid book-cover" alt="{{ book.title }}">
+      <div class="book-cover">
+        {% if book.cover_image %}
+          <img src="{{ url_for('get_image', filename=book.cover_image) }}" alt="Обложка книги" class="img-fluid">
+        {% else %}
+          <img src="{{ url_for('static', filename='images/default-cover.jpg') }}" alt="Нет изображения" class="img-fluid">
+        {% endif %}
+      </div>
     </div>
-    <div class="col-md-8">
-      <h2>{{ book.title }}</h2>
-      <h5>by {{ book.author }}</h5>
-      <p class="book-details">
-        <strong>Author:</strong> {{ book.authors }}<br>
-        <strong>Published:</strong> {{ book.publication_date }}<br>
-        <strong>Publisher:</strong> {{ book.publisher }}<br>
-        <strong>Category:</strong> {{ book.categories }}<br>
-        <strong>ISBN:</strong> {{ book.isbn }}
-      </p>
-      <p>{{ book.description }}</p>
-      
-      <form action="{{ url_for('edit_book', book_id=book.id) }}" method="POST" class="d-grid">
-        <button type="submit" class="btn btn-warning">Редактировать</button>
-      </form>
 
+    <!-- Правая колонка: Информация о книге -->
+    <div class="col-md-8">
+      <h1>{{ book.title }}</h1>
+      <div class="mb-3">
+        <strong>ISBN:</strong> {{ book.isbn }}
+      </div>
+      <div class="mb-3">
+        <strong>Дата публикации:</strong> {{ book.publication_date }}
+      </div>
+      <div class="mb-3">
+        <strong>Издательство:</strong> {{ book.publisher }}
+      </div>
+      <div class="mb-3">
+        <strong>Описание:</strong> {{ book.description }}
+      </div>
+      <div class="mb-3">
+        <strong>Ссылка в Telegram:</strong> <a href="{{ book.telegram_link }}" target="_blank">{{ book.telegram_link }}</a>
+      </div>
+      <div class="mb-3">
+        <strong>Telegram File ID:</strong> {{ book.telegram_file_id }}
+      </div>
+      <div class="mb-3">
+        <strong>Авторы:</strong> 
+        {% if book.authors %}
+          {% for author in book.authors %}
+            {{ author.name }}{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        {% else %}
+          Нет авторов.
+        {% endif %}
+      </div>
+      <div class="mb-3">
+        <strong>Категории:</strong>
+        {% if book.categories %}
+          {% for category in book.categories %}
+            {{ category.name }}{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        {% else %}
+          Нет категорий.
+        {% endif %}
+      </div>
+      <div class="mt-4">
+        <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-warning">Редактировать</a>
+        <a href="{{ url_for('cover_book', book_id=book.id) }}" class="btn btn-success">Обложка</a>
+        <form action="{{ url_for('delete_book', book_id=book.id) }}" method="POST" style="display:inline;">
+          <input type="hidden" name="book_id" value="{{ book.id }}">
+          <button type="submit" class="btn btn-danger" onclick="return confirm('Вы уверены, что хотите удалить эту книгу?');">Удалить</button>
+        </form>
+      </div>
     </div>
   </div>
 </div>
-
 {% endblock %}
