@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, FieldList, FormField, BooleanField
+from wtforms import SelectMultipleField, StringField, SubmitField, TextAreaField, FieldList, FormField, BooleanField
 from wtforms.validators import DataRequired, Length, URL, Optional
 from flask_wtf.file import FileAllowed, FileField, FileRequired
 
@@ -23,13 +23,11 @@ class AuthorForm(FlaskForm):
 class BookForm(FlaskForm):
     title = StringField('Название', validators=[DataRequired(), Length(max=200)])
     isbn = StringField('ISBN', validators=[Length(max=20)])
-    publication_date = StringField('Дата публикации', validators=[Length(max=20)])
+    publication_date = StringField('Дата публикации', validators=[Length(max=50)])
     publisher = StringField('Издатель', validators=[Length(max=200)])
     telegram_link = StringField('Telegram Link', validators=[Length(max=200)])
     telegram_file_id = StringField('Telegram File ID', validators=[Length(max=200)])
-    # authors = StringField('Authors (comma separated)', validators=[Length(max=500)])
-    # categories = StringField('Categories (comma separated)', validators=[Length(max=500)])
     description = TextAreaField('Описание')
-    # cover_image = FileField('Обложка книги', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Только изображения!')])
-    # delete_cover = BooleanField('Удалить текущую обложку')
+    authors = SelectMultipleField('Authors', choices=[])    
+    categories = SelectMultipleField('Categories', choices=[])    
     submit = SubmitField('Сохранить')
