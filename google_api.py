@@ -2,7 +2,7 @@ import os
 import requests
 import hashlib
 
-q = "ISBN 978-5-4461-1675-1"
+q = "Большая книга проектов Python"
 url = f"https://www.googleapis.com/books/v1/volumes?q={q}"
 print(url)
 
