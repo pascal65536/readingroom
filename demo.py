@@ -33,8 +33,7 @@ import os
 
 app = Flask(__name__)
 app.secret_key = os.urandom(256)
-
-
+os.makedirs("_download", exist_ok=True)
 
 
 def allowed_file(filename, extensions=set()):
@@ -158,10 +157,9 @@ def book(book_id):
     access_token = access_token_dct.get("access_token")
     book = book_get(book_id, access_token, govdatahub=cridentials[2])
     cover_image = book.get("cover_image")
-    if cover_image:
+    if cover_image and not os.path.exists(os.path.join("_download", cover_image)):
         file_local = file_download(cover_image, access_token, govdatahub=cridentials[2])
         # Сохранение файла на диск
-        os.makedirs("_download", exist_ok=True)
         file_path = os.path.join("_download", cover_image)
         with open(file_path, "wb") as f:
             f.write(file_local.content)
