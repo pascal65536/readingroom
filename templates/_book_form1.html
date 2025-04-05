@@ -1,24 +1,20 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>{{ form.submit.label.text }} Книгу</h1>
-        <a href="{{ url_for('books') }}" class="btn btn-secondary">Назад к списку книг</a>
-    </div>
 
+<div class="container mt-5">
+    <h1 class="mb-4">{% if book %}Редактирование книги{% else %}Создание книги{% endif %}</h1>
     <form method="POST" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
-
+        
         <div class="mb-3">
-            {{ form.title.label(class="form-label") }}
+            {{ form.title.label(class="form-label") }}<br>
             {{ form.title(class="form-control") }}
             {% if form.title.errors %}
-                <div class="text-danger">
+                <ul class="errors">
                     {% for error in form.title.errors %}
-                        <p>{{ error }}</p>
+                        <li>{{ error }}</li>
                     {% endfor %}
-                </div>
+                </ul>
             {% endif %}
         </div>
 
@@ -28,7 +24,7 @@
             {% if form.isbn.errors %}
                 <div class="text-danger">
                     {% for error in form.isbn.errors %}
-                        <p>{{ error }}</p>
+                        {{ error }}
                     {% endfor %}
                 </div>
             {% endif %}
@@ -40,7 +36,7 @@
             {% if form.publication_date.errors %}
                 <div class="text-danger">
                     {% for error in form.publication_date.errors %}
-                        <p>{{ error }}</p>
+                        {{ error }}
                     {% endfor %}
                 </div>
             {% endif %}
@@ -52,24 +48,11 @@
             {% if form.publisher.errors %}
                 <div class="text-danger">
                     {% for error in form.publisher.errors %}
-                        <p>{{ error }}</p>
+                        {{ error }}
                     {% endfor %}
                 </div>
             {% endif %}
         </div>
-
-        <div class="mb-3">
-            {{ form.description.label(class="form-label") }}
-            {{ form.description(class="form-control", rows=5) }}
-            {% if form.description.errors %}
-                <div class="text-danger">
-                    {% for error in form.description.errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        
 
         <div class="mb-3">
             {{ form.telegram_link.label(class="form-label") }}
@@ -77,25 +60,53 @@
             {% if form.telegram_link.errors %}
                 <div class="text-danger">
                     {% for error in form.telegram_link.errors %}
-                        <p>{{ error }}</p>
+                        {{ error }}
                     {% endfor %}
                 </div>
             {% endif %}
         </div>
-        
+
         <div class="mb-3">
             {{ form.telegram_file_id.label(class="form-label") }}
             {{ form.telegram_file_id(class="form-control") }}
             {% if form.telegram_file_id.errors %}
                 <div class="text-danger">
                     {% for error in form.telegram_file_id.errors %}
-                        <p>{{ error }}</p>
+                        {{ error }}
                     {% endfor %}
                 </div>
             {% endif %}
         </div>
 
-        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control") }}
+            {% if form.description.errors %}
+                <div class="text-danger">
+                    {% for error in form.description.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.cover_image.label }}<br>
+            {{ form.cover_image() }}
+            {% if form.cover_image.errors %}
+                <ul class="errors">
+                    {% for error in form.cover_image.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.submit() }}
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Отмена</a>
+        </div>
     </form>
 </div>
+
 {% endblock %}

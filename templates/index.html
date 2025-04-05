@@ -1,0 +1,65 @@
+{% extends "base.html" %} 
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Колонка 1: Список книг -->
+        <div class="col-md-4">
+            <section class="card h-100">
+                <div class="card-body">
+                    <h2 class="card-title">Список книг</h2>
+                    {% if books %}
+                    <ol class="list-group list-group-numbered">
+                        {% for book in books %}
+                        <li class="list-group-item">{{ book.title }}</li>
+                        {% endfor %}
+                    </ol>
+                    {% else %}
+                        <p class="card-text">Нет доступных книг.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+        
+        <!-- Колонка 2: Список авторов -->
+        <div class="col-md-4">
+            <section class="card h-100">
+                <div class="card-body">
+                    <h2 class="card-title">Список авторов</h2>
+                    {% if authors %}
+                        <ol class="list-group list-group-numbered">
+                            {% for author in authors %}
+                            <li class="list-group-item">{{ author.name }}</li>
+                            {% endfor %}
+                        </ol>
+                    {% else %}
+                        <p class="card-text">Нет доступных авторов.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+        
+        <!-- Колонка 3: Список категорий -->
+        <div class="col-md-4">
+            <section class="card h-100">
+                <div class="card-body">
+                    <h2 class="card-title">Список категорий</h2>
+                    {% if categories %}
+                    <ol class="list-group list-group-numbered">
+                        {% for category in categories %}
+                        <li class="list-group-item">{{ category.name }}</li>
+                        {% endfor %}
+                    </ol>
+                    {% else %}
+                        <p class="card-text">Нет доступных категорий.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <footer class="mt-4 text-center">
+        <p>&copy; 2025 Изба-читальня</p>
+    </footer>
+</div>
+{% endblock %}

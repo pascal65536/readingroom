@@ -1,22 +1,32 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} 
 
+{% block content %}
 <div class="container mt-5">
-  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-    {% for category in categories %}
-    <div class="col">
-      <div class="card h-100">
-        <div class="card-header">
-          {{ category.id }}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Список категорий</h1>
+    <a href="{{ url_for('create_category') }}" class="btn btn-primary">Добавить категорию</a>
+  </div>
+  <div class="row">
+    {% if categories %}
+      {% for category in categories %}
+        <div class="col-md-4 col-sm-6 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title">{{ category.name }}</h5>
+              <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('edit_category', category_id=category.id) }}" class="btn btn-warning">Редактировать</a>
+                <form action="{{ url_for('delete_category') }}" method="POST" onsubmit="return confirm('Вы уверены, что хотите удалить эту категорию?');">
+                  <input type="hidden" name="category_id" value="{{ category.id }}">
+                  <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ category.name }}</h5>
-          <a href="{# url_for('category', category_id=category.id) #}" class="btn btn-primary mt-auto">Information</a>
-        </div>
-      </div>
-    </div>
-    {% endfor %}
+      {% endfor %}
+    {% else %}
+      <p>Нет доступных категорий.</p>
+    {% endif %}
   </div>
 </div>
-
 {% endblock %}
