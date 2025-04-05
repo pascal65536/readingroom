@@ -334,18 +334,7 @@ class Book(Resource):
                 return response
             
             # Получаем данные для обновления
-            if request.is_json:
-                updated_data = request.get_json()
-                print("Received JSON data")
-            else:
-                # Извлекаем JSON-данные из multipart/form-data
-                updated_data = request.form.get("json_data", {})
-                try:
-                    updated_data = json.loads(updated_data)
-                except json.JSONDecodeError:
-                    updated_data = {}
-                print("Received form data with JSON")
-            
+            updated_data = request.get_json()
             # Обновляем поля книги, если они предоставлены
             book.title = updated_data.get("title", book.title)
             book.isbn = updated_data.get("isbn", book.isbn)
@@ -722,7 +711,7 @@ class FileList(Resource):
             return response
         # Проверяем тип файла
         ext = file.filename.rsplit(".", 1)[-1].lower()
-        if ext not in {"pdf", "jpg", "png"}:
+        if ext not in {"pdf", "jpg", "png", "jpeg", "gif"}:
             response = jsonify({"message": "File type not allowed"})
             response.status_code = 400
             return response

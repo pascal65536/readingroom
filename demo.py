@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
 from utils import (
     get_access_token,
     books_get,
@@ -17,6 +17,7 @@ from utils import (
     category_put,
     category_delete,
     file_upload,
+    file_download,
 )
 from settings import cridentials
 from flask_wtf import FlaskForm
@@ -32,12 +33,18 @@ app.secret_key = os.urandom(256)
 
 
 
+
 def allowed_file(filename, extensions=set()):
     if "." not in filename:
         return False
     if filename.rsplit(".", 1)[1].lower() not in extensions:
         return False
     return True
+
+
+@app.route('/_download/<filename>')
+def get_image(filename):
+    return send_from_directory('_download', filename)
 
 
 # authors
@@ -149,6 +156,14 @@ def book(book_id):
     access_token_dct = get_access_token(*cridentials)
     access_token = access_token_dct.get("access_token")
     book = book_get(book_id, access_token, govdatahub=cridentials[2])
+    cover_image = book.get("cover_image")
+    if cover_image:
+        file_local = file_download(cover_image, access_token, govdatahub=cridentials[2])
+        # Сохранение файла на диск
+        os.makedirs("_download", exist_ok=True)
+        file_path = os.path.join("_download", cover_image)
+        with open(file_path, "wb") as f:
+            f.write(file_local.content)
     return render_template("book.html", book=book)
 
 @app.route("/book/<string:book_id>/delete", methods=["GET", "POST"])
@@ -200,7 +215,6 @@ def edit_book(book_id):
         return redirect(url_for("books"))
     return render_template("book_form.html", form=form, book=book)
 
-
 # cover_book file_upload
 @app.route("/book/<string:book_id>/cover", methods=["GET", "POST"])
 def cover_book(book_id):
@@ -219,17 +233,16 @@ def cover_book(book_id):
             access_token = access_token_dct.get("access_token")
             ret = file_upload(file_path, access_token, govdatahub=cridentials[2])
             os.remove(file_path)
-            import ipdb; ipdb.sset_trace()
-            
             # Обновление книги
-            json_data = {"cover_image": ret["file_path"]} 
-            ret = book_update(book_id, json_data, access_token)
-            print(ret)
-            return redirect(url_for("book", book_id=book_id))
+            if ret.get("filename_uid"):
+                json_data = {"cover_image": ret["filename_uid"]} 
+                access_token_dct = get_access_token(*cridentials)
+                access_token = access_token_dct.get("access_token")                
+                ret = book_update(book_id, json_data, access_token, govdatahub=cridentials[2])
+                return redirect(url_for("book", book_id=book_id))
         else:
             form.file.errors.append("Недопустимое расширение файла.")
     return render_template("file_upload.html", form=form, book=book)
-
 
 
 

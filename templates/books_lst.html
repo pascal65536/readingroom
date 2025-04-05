@@ -12,9 +12,9 @@
         <div class="col-md-4 col-sm-6 mb-4">
           <div class="card h-100">
             {% if book.cover_image %}
-              <img src="{{ url_for('static', filename='images/' + book.cover_image) }}" class="card-img-top" alt="{{ book.title }}">
+              <img src="{{ url_for('get_image', filename=book.cover_image) }}" class="card-img-top book-cover" alt="{{ book.title }}">
             {% else %}
-              <img src="{{ url_for('static', filename='images/default_book_cover.jpg') }}" class="card-img-top" alt="{{ book.title }}">
+              <img src="{{ url_for('static', filename='images/default-cover.jpg') }}" class="card-img-top book-cover" alt="{{ book.title }}">
             {% endif %}
             <div class="card-body">
               <h5 class="card-title">{{ book.title }}</h5>
