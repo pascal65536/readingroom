@@ -19,7 +19,9 @@ from utils import (
     file_upload,
     file_download,
     add_category_to_book,
+    remove_category_from_book,
     add_author_to_book,
+    remove_author_from_book,
 )
 from settings import cridentials
 from types import SimpleNamespace
@@ -203,12 +205,16 @@ def edit_book(book_id):
     book = SimpleNamespace(**book_dict)
     form = BookForm(obj=book)
 
-    # Добавляем поля authors и categories непосредственно перед рендерингом шаблона
-    for author in authors:
-        form.authors.choices.append((author.get("id"), author.get("name")))
-    for category in categories:
-        form.categories.choices.append((category.get("id"), category.get("name")))
-        
+    # Добавляем поля authors и categories
+    form.authors.choices = [("0", "Выберите автора")] + [(author.get("id"), author.get("name")) for author in authors]
+    form.categories.choices = [("0", "Выберите категорию")] + [(category.get("id"), category.get("name")) for category in categories]
+    
+    # Предварительное заполнение выбранных авторов и категорий
+    selected_authors = [author.get("id") for author in book.authors]
+    selected_categories = [category.get("id") for category in book.categories]
+    form.authors.process_data(selected_authors)
+    form.categories.process_data(selected_categories)
+
     if request.method == "POST" and form.validate_on_submit():
         json_data = {
             "title": form.title.data if form.title.data else None,
@@ -221,14 +227,21 @@ def edit_book(book_id):
         }        
         ret = book_update(book_id, json_data, access_token, govdatahub=cridentials[2])
         
-        for category_id in form.categories.data:
-            ret = add_category_to_book(book_id, category_id, access_token, govdatahub=cridentials[2])
+        # Обработка категорий
+        for category in book.categories:
+            remove_category_from_book(book_id, category.get("id"), access_token, govdatahub=cridentials[2])
+        if form.categories.raw_data and '0' not in form.categories.raw_data:
+            for category_id in form.categories.raw_data:
+                ret = add_category_to_book(book_id, category_id, access_token, govdatahub=cridentials[2])
 
-        for author_id in form.authors.data:
-            ret = add_author_to_book(book_id, author_id, access_token, govdatahub=cridentials[2])
-
+        # Обработка авторов
+        for author in book.authors:
+            remove_author_from_book(book_id, author.get("id"), access_token, govdatahub=cridentials[2])
+        if form.authors.raw_data and '0' not in form.authors.raw_data:
+            for author_id in form.authors.raw_data:
+                ret = add_author_to_book(book_id, author_id, access_token, govdatahub=cridentials[2])
+        
         return redirect(url_for("books"))
-
     return render_template("book_form.html", form=form, book=book)
 
 # cover_book file_upload
