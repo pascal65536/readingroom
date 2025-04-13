@@ -573,7 +573,7 @@ if __name__ == "__main__":
         "filename_orig": "1.png",
         "filename_uid": "926d51b67bd5143a49f70513bef45952.png",
         "id": "926d51b67bd5143a49f70513bef45952",
-    }, "Error in `file_upload`"
+    }, "Error in `upload_file`"
 
     # Обновление обложки книги
     json_data = {"cover_image": ret["file_path"]}

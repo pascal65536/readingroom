@@ -5,7 +5,6 @@ from utils import (
     book_get,
     book_update,
     book_delete,
-    book_upload,
     authors_get,
     author_post,
     author_put,
@@ -16,12 +15,13 @@ from utils import (
     category_post,
     category_put,
     category_delete,
-    file_upload,
-    file_download,
     add_category_to_book,
     remove_category_from_book,
     add_author_to_book,
     remove_author_from_book,
+    upload_file,
+    book_create,
+    download_file,
 )
 from settings import cridentials
 from types import SimpleNamespace
@@ -158,11 +158,7 @@ def book(book_id):
     book = book_get(book_id, access_token, govdatahub=cridentials[2])
     cover_image = book.get("cover_image")
     if cover_image and not os.path.exists(os.path.join("_download", cover_image)):
-        file_local = file_download(cover_image, access_token, govdatahub=cridentials[2])
-        # Сохранение файла на диск
-        file_path = os.path.join("_download", cover_image)
-        with open(file_path, "wb") as f:
-            f.write(file_local.content)
+        download_file(cover_image, cover_image, access_token, govdatahub=cridentials[2])
     return render_template("book.html", book=book)
 
 @app.route("/book/<string:book_id>/delete", methods=["GET", "POST"])
@@ -185,9 +181,11 @@ def create_book():
             file.save(file_path)
             access_token_dct = get_access_token(*cridentials)
             access_token = access_token_dct.get("access_token")
-            ret = book_upload(file_path, access_token, govdatahub=cridentials[2])
-            book_id = ret["id"]
+            book_dct = upload_file(file_path, access_token, govdatahub=cridentials[2])
+            book_id = book_dct["id"]
             os.remove(file_path)
+            book_dct.update({'title': book_dct['filename_orig']})
+            book_create(book_id, book_dct, access_token, govdatahub=cridentials[2])
             return redirect(url_for("book", book_id=book_id))
         else:
             form.file.errors.append("Недопустимое расширение файла.")
@@ -242,7 +240,7 @@ def edit_book(book_id):
         return redirect(url_for("books"))
     return render_template("book_form.html", form=form, book=book)
 
-# cover_book file_upload
+# cover_book upload_file
 @app.route("/book/<string:book_id>/cover", methods=["GET", "POST"])
 def cover_book(book_id):
     cache = '_cache'
@@ -253,12 +251,12 @@ def cover_book(book_id):
     form = UploadForm()
     if request.method == "POST" and form.validate_on_submit():
         file = form.file.data
-        if file and allowed_file(file.filename, {'jpg', 'png', 'jpeg'}):
+        if file and allowed_file(file.filename, {'jpg', 'png', 'jpeg'}):            
             file_path = os.path.join(cache, file.filename)
             file.save(file_path)
             access_token_dct = get_access_token(*cridentials)
             access_token = access_token_dct.get("access_token")
-            ret = file_upload(file_path, access_token, govdatahub=cridentials[2])
+            ret = upload_file(file_path, access_token, govdatahub=cridentials[2])
             os.remove(file_path)
             # Обновление книги
             if ret.get("filename_uid"):
