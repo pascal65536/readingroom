@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory,jsonify
 from utils import (
     get_access_token,
     books_get,
@@ -27,6 +27,7 @@ from forms import AuthorForm, BookForm, CategoryForm, UploadForm
 from wtforms import SelectField
 import requests
 import os
+import json
 
 
 app = Flask(__name__)
@@ -47,6 +48,35 @@ def allowed_file(filename, extensions=set()):
 def get_image(filename):
     return send_from_directory('_download', filename)
 
+
+@app.route("/google_me/<search>/")
+def google_me(search):
+    # тут типо запрос Google Books API
+    google_books_url = "https://www.googleapis.com/books/v1/volumes"
+    params = {"q": search, "maxResults": 1}# maxResults это типо первая подходящая
+    response = requests.get(google_books_url, params=params)
+
+    # тут я ещё добавила на случай ошибки , но уже когда доделала подумала что зря так как если ничего не найдено то лучше наверное что бы ничего не возвращало
+    if response.status_code != 200:
+        return jsonify({"error": "Ошибка при обращении к Google Books API"}), 500
+    data = response.json()
+    if "items" not in data or not data["items"]:
+        return jsonify({"error": "Книга не найдена"}), 404
+
+    book_info = data["items"][0]["volumeInfo"]
+
+    # Формируем JSONчик ,в телеграмном ставлю none потому что пока нечего:\
+    json_data = {
+        "title": book_info.get("title"),
+        "isbn": next((id["identifier"] for id in book_info.get("industryIdentifiers", []) if id["type"] in ["ISBN_10", "ISBN_13"]), None),
+        "publication_date": book_info.get("publishedDate"),
+        "publisher": book_info.get("publisher"),
+        "description": book_info.get("description"),
+        "telegram_link": None,
+        "telegram_file_id": None,
+    }
+
+    return jsonify(json_data)
 
 # authors
 @app.route("/authors/")
