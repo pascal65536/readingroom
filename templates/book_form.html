@@ -24,26 +24,12 @@
 
         <div class="mb-3">
             {{ form.authors.label(class="form-label") }}
-            {{ form.authors(class="form-control") }}
-            {% if form.authors.errors %}
-                <div class="text-danger">
-                    {% for error in form.authors.errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}            
+            {{ form.authors(class="form-control select2-multiple", multiple="multiple") }}
         </div>
 
         <div class="mb-3">
             {{ form.categories.label(class="form-label") }}
-            {{ form.categories(class="form-control") }}
-            {% if form.categories.errors %}
-                <div class="text-danger">
-                    {% for error in form.categories.errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}            
+            {{ form.categories(class="form-control select2-multiple", multiple="multiple") }}
         </div>
 
         <div class="mb-3">
@@ -93,7 +79,6 @@
                 </div>
             {% endif %}
         </div>
-        
 
         <div class="mb-3">
             {{ form.telegram_link.label(class="form-label") }}
@@ -106,7 +91,7 @@
                 </div>
             {% endif %}
         </div>
-        
+
         <div class="mb-3">
             {{ form.telegram_file_id.label(class="form-label") }}
             {{ form.telegram_file_id(class="form-control") }}
@@ -122,4 +107,22 @@
         <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
     </form>
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        $('.select2-multiple').each(function() {
+            var select = $(this);
+            var selectedValues = select.val() || [];
+            select.select2({
+                placeholder: "Выберите значения",
+                allowClear: true
+            });
+            select.val(selectedValues).trigger('change');
+        });
+    });
+</script>
+
 {% endblock %}
