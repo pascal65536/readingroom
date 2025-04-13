@@ -228,7 +228,7 @@ class APISession:
 async def main():
     file_path = "fixtures/1.pdf"
     cover_path = "fixtures/1.png"
-    api_session = APISession("http://127.0.0.1:8001")
+    api_session = APISession("http://127.0.0.1:5000")
 
     access_token = await api_session.get_access_token("user1", "password1")
     assert len(access_token) == 331, "Error in `get_access_token`"

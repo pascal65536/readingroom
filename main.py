@@ -821,6 +821,6 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     if DEBUG:
-        app.run(debug=True, host='127.0.0.1', port=8001)
+        app.run(debug=True, host='127.0.0.1', port=5000)
     else:
         app.run(host='192.168.3.27', port=8001)
