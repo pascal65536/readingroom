@@ -1,4 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    send_from_directory,
+)
 from utils import (
     get_access_token,
     books_get,
@@ -44,9 +52,42 @@ def allowed_file(filename, extensions=set()):
     return True
 
 
-@app.route('/_download/<filename>')
+@app.route("/_download/<filename>")
 def get_image(filename):
-    return send_from_directory('_download', filename)
+    return send_from_directory("_download", filename)
+
+
+@app.route("/google_me/<search>/")
+def google_me(search):
+    # тут типо запрос Google Books API
+    google_books_url = "https://www.googleapis.com/books/v1/volumes"
+    params = {"q": search, "maxResults": 10}  # maxResults это типо первая подходящая
+    response = requests.get(google_books_url, params=params)
+    # тут я ещё добавила на случай ошибки, но уже когда доделала подумала что зря так как если ничего не найдено то лучше наверное что бы ничего не возвращало
+    if response.status_code != 200:
+        return jsonify({"error": "Ошибка при обращении к Google Books API"}), 500
+    data = response.json()
+    if "items" not in data or not data["items"]:
+        return jsonify({"error": "Книга не найдена"}), 404
+    book_info = data["items"][0]["volumeInfo"]
+    # Формируем JSONчик, в телеграмном ставлю none потому что пока нечего
+    json_data = {
+        "title": book_info.get("title"),
+        "isbn": next(
+            (
+                id["identifier"]
+                for id in book_info.get("industryIdentifiers", [])
+                if id["type"] in ["ISBN_10", "ISBN_13"]
+            ),
+            None,
+        ),
+        "publication_date": book_info.get("publishedDate"),
+        "publisher": book_info.get("publisher"),
+        "description": book_info.get("description"),
+        "telegram_link": None,
+        "telegram_file_id": None,
+    }
+    return jsonify(data)
 
 
 # authors
@@ -143,6 +184,7 @@ def edit_category(category_id):
         return redirect(url_for("categories"))
     return render_template("category_form.html", form=form, category=category)
 
+
 # books
 @app.route("/books/")
 def books():
@@ -150,6 +192,7 @@ def books():
     access_token = access_token_dct.get("access_token")
     books = books_get(access_token, govdatahub=cridentials[2])
     return render_template("books_lst.html", books=books)
+
 
 @app.route("/book/<string:book_id>")
 def book(book_id):
@@ -161,6 +204,7 @@ def book(book_id):
         download_file(cover_image, cover_image, access_token, govdatahub=cridentials[2])
     return render_template("book.html", book=book)
 
+
 @app.route("/book/<string:book_id>/delete", methods=["GET", "POST"])
 def delete_book(book_id):
     if request.method == "POST":
@@ -169,14 +213,15 @@ def delete_book(book_id):
         book_delete(book_id, access_token, govdatahub=cridentials[2])
     return redirect(url_for("books"))
 
+
 @app.route("/book/create", methods=["GET", "POST"])
 def create_book():
-    cache = '_cache'
+    cache = "_cache"
     os.makedirs(cache, exist_ok=True)
     form = UploadForm()
     if request.method == "POST" and form.validate_on_submit():
         file = form.file.data
-        if file and allowed_file(file.filename, {'pdf'}):
+        if file and allowed_file(file.filename, {"pdf"}):
             file_path = os.path.join(cache, file.filename)
             file.save(file_path)
             access_token_dct = get_access_token(*cridentials)
@@ -184,12 +229,13 @@ def create_book():
             book_dct = upload_file(file_path, access_token, govdatahub=cridentials[2])
             book_id = book_dct["id"]
             os.remove(file_path)
-            book_dct.update({'title': book_dct['filename_orig']})
+            book_dct.update({"title": book_dct["filename_orig"]})
             book_create(book_id, book_dct, access_token, govdatahub=cridentials[2])
             return redirect(url_for("book", book_id=book_id))
         else:
             form.file.errors.append("Недопустимое расширение файла.")
     return render_template("book_upload.html", form=form)
+
 
 @app.route("/book/<string:book_id>/edit", methods=["GET", "POST"])
 def edit_book(book_id):
@@ -202,9 +248,13 @@ def edit_book(book_id):
     form = BookForm(obj=book)
 
     # Добавляем поля authors и categories
-    form.authors.choices = [("0", "Выберите автора")] + [(author.get("id"), author.get("name")) for author in authors]
-    form.categories.choices = [("0", "Выберите категорию")] + [(category.get("id"), category.get("name")) for category in categories]
-    
+    form.authors.choices = [("0", "Выберите автора")] + [
+        (author.get("id"), author.get("name")) for author in authors
+    ]
+    form.categories.choices = [("0", "Выберите категорию")] + [
+        (category.get("id"), category.get("name")) for category in categories
+    ]
+
     # Предварительное заполнение выбранных авторов и категорий
     selected_authors = [author.get("id") for author in book.authors]
     selected_categories = [category.get("id") for category in book.categories]
@@ -215,43 +265,58 @@ def edit_book(book_id):
         json_data = {
             "title": form.title.data if form.title.data else None,
             "isbn": form.isbn.data if form.isbn.data else None,
-            "publication_date": form.publication_date.data if form.publication_date.data else None,
+            "publication_date": (
+                form.publication_date.data if form.publication_date.data else None
+            ),
             "publisher": form.publisher.data if form.publisher.data else None,
             "description": form.description.data if form.description.data else None,
-            "telegram_link": form.telegram_link.data if form.telegram_link.data else None,
-            "telegram_file_id": form.telegram_file_id.data if form.telegram_file_id.data else None,
-        }        
+            "telegram_link": (
+                form.telegram_link.data if form.telegram_link.data else None
+            ),
+            "telegram_file_id": (
+                form.telegram_file_id.data if form.telegram_file_id.data else None
+            ),
+        }
         ret = book_update(book_id, json_data, access_token, govdatahub=cridentials[2])
-        
+
         # Обработка категорий
         for category in book.categories:
-            remove_category_from_book(book_id, category.get("id"), access_token, govdatahub=cridentials[2])
-        if form.categories.raw_data and '0' not in form.categories.raw_data:
+            remove_category_from_book(
+                book_id, category.get("id"), access_token, govdatahub=cridentials[2]
+            )
+        if form.categories.raw_data and "0" not in form.categories.raw_data:
             for category_id in form.categories.raw_data:
-                ret = add_category_to_book(book_id, category_id, access_token, govdatahub=cridentials[2])
+                ret = add_category_to_book(
+                    book_id, category_id, access_token, govdatahub=cridentials[2]
+                )
 
         # Обработка авторов
         for author in book.authors:
-            remove_author_from_book(book_id, author.get("id"), access_token, govdatahub=cridentials[2])
-        if form.authors.raw_data and '0' not in form.authors.raw_data:
+            remove_author_from_book(
+                book_id, author.get("id"), access_token, govdatahub=cridentials[2]
+            )
+        if form.authors.raw_data and "0" not in form.authors.raw_data:
             for author_id in form.authors.raw_data:
-                ret = add_author_to_book(book_id, author_id, access_token, govdatahub=cridentials[2])
-        
+                ret = add_author_to_book(
+                    book_id, author_id, access_token, govdatahub=cridentials[2]
+                )
+
         return redirect(url_for("books"))
     return render_template("book_form.html", form=form, book=book)
+
 
 # cover_book upload_file
 @app.route("/book/<string:book_id>/cover", methods=["GET", "POST"])
 def cover_book(book_id):
-    cache = '_cache'
+    cache = "_cache"
     os.makedirs(cache, exist_ok=True)
     access_token_dct = get_access_token(*cridentials)
     access_token = access_token_dct.get("access_token")
-    book = book_get(book_id, access_token, govdatahub=cridentials[2])    
+    book = book_get(book_id, access_token, govdatahub=cridentials[2])
     form = UploadForm()
     if request.method == "POST" and form.validate_on_submit():
         file = form.file.data
-        if file and allowed_file(file.filename, {'jpg', 'png', 'jpeg'}):            
+        if file and allowed_file(file.filename, {"jpg", "png", "jpeg"}):
             file_path = os.path.join(cache, file.filename)
             file.save(file_path)
             access_token_dct = get_access_token(*cridentials)
@@ -260,15 +325,16 @@ def cover_book(book_id):
             os.remove(file_path)
             # Обновление книги
             if ret.get("filename_uid"):
-                json_data = {"cover_image": ret["filename_uid"]} 
+                json_data = {"cover_image": ret["filename_uid"]}
                 access_token_dct = get_access_token(*cridentials)
-                access_token = access_token_dct.get("access_token")                
-                ret = book_update(book_id, json_data, access_token, govdatahub=cridentials[2])
+                access_token = access_token_dct.get("access_token")
+                ret = book_update(
+                    book_id, json_data, access_token, govdatahub=cridentials[2]
+                )
                 return redirect(url_for("book", book_id=book_id))
         else:
             form.file.errors.append("Недопустимое расширение файла.")
     return render_template("file_upload.html", form=form, book=book)
-
 
 
 @app.route("/")

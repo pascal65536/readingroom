@@ -9,12 +9,17 @@ from flask_restful import Api, Resource
 from models import Author as AuthorModel
 from models import Category as CategoryModel
 from flask import Flask, request, jsonify, send_from_directory
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+)
 from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploads'  # Каталог, где хранятся обложки
+app.config["UPLOAD_FOLDER"] = "uploads"  # Каталог, где хранятся обложки
 app.config["DATA_FOLDER"] = "data"
 app.config["CACHE_FOLDER"] = "_cache"
 app.config["SECRET_KEY"] = os.urandom(256)
@@ -36,22 +41,22 @@ os.makedirs(app.config["CACHE_FOLDER"], exist_ok=True)
 users = {"user1": {"password": "password1"}, "user2": {"password": "password2"}}
 
 
-@app.route('/login', methods=['POST'])
+@app.route("/login", methods=["POST"])
 def login():
-    username = request.json.get('username', None)
-    password = request.json.get('password', None)
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
 
     if not username or not password:
         return jsonify({"msg": "Необходимо указать логин и пароль"}), 400
 
-    if username not in users or users[username]['password'] != password:
+    if username not in users or users[username]["password"] != password:
         return jsonify({"msg": "Неверный логин или пароль"}), 401
 
     access_token = create_access_token(identity=username)
     return jsonify(access_token=access_token)
 
 
-@app.route('/protected', methods=['GET'])
+@app.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
     current_user = get_jwt_identity()
@@ -67,9 +72,9 @@ def calculate_md5(file_path):
     return hash_md5.hexdigest()
 
 
-def upload(file, allowed_extensions={'jpg', 'jpeg', 'png', 'gif'}):
+def upload(file, allowed_extensions={"jpg", "jpeg", "png", "gif"}):
     # Проверяем тип файла
-    ext = file.filename.rsplit(".", 1)[-1].lower() if file.filename else ''
+    ext = file.filename.rsplit(".", 1)[-1].lower() if file.filename else ""
     if ext not in allowed_extensions:
         return None, {"message": "File type not allowed"}
     # Генерируем уникальный идентификатор и создаем путь для временного хранения
@@ -84,7 +89,7 @@ def upload(file, allowed_extensions={'jpg', 'jpeg', 'png', 'gif'}):
     os.makedirs(folder_path, exist_ok=True)
     uid_filename = f"{file_hash}.{ext}"
     file_path = os.path.join(folder_path, uid_filename)
-    shutil.move(cache_path, file_path)    
+    shutil.move(cache_path, file_path)
     return file_path, {"message": "File uploaded successfully"}
 
 
@@ -136,7 +141,7 @@ class AuthorList(Resource):
                 response = jsonify({"message": "Error adding author"})
                 response.status_code = 500
                 return response
-        
+
         author_obj = AuthorModel.query.filter_by(name=name).first()
         # Возвращаем данные о добавленном авторе
         response = jsonify(author_obj.as_dict())
@@ -152,7 +157,7 @@ class Author(Resource):
             if not author:
                 response = jsonify({"message": "Author not found"})
                 response.status_code = 404
-                return response 
+                return response
             # Возвращаем данные автора в формате JSON
             return jsonify(author.as_dict())
 
@@ -226,7 +231,9 @@ class CategoryList(Resource):
         with app.app_context():
             category_obj = CategoryModel.query.filter_by(name=name).first()
             if category_obj:
-                response = jsonify({"message": "Category with this name already exists"})
+                response = jsonify(
+                    {"message": "Category with this name already exists"}
+                )
                 response.status_code = 400
                 return response
 
@@ -287,7 +294,7 @@ class Category(Resource):
                 response = jsonify({"message": "Category not found"})
                 response.status_code = 404
                 return response
-            
+
             try:
                 CategoryModel.query.filter_by(id=category_id).delete()
                 db.session.commit()
@@ -337,7 +344,7 @@ class Book(Resource):
             new_book = request.get_json()
             new_book["id"] = book_id
             new_book["title"] = new_book.get("title", book_id)
-            
+
             # Создаем новую книгу
             new_book = BookModel(**new_book)
             try:
@@ -353,7 +360,6 @@ class Book(Resource):
             response.status_code = 200
             return response
 
-
     @jwt_required()
     def put(self, book_id):
         with app.app_context():
@@ -363,17 +369,19 @@ class Book(Resource):
                 response = jsonify({"message": "Book not found"})
                 response.status_code = 404
                 return response
-            
+
             # Получаем данные для обновления
             updated_data = request.get_json()
             # Обновляем поля книги, если они предоставлены
             book.title = updated_data.get("title", book.title)
             book.isbn = updated_data.get("isbn", book.isbn)
-            book.publication_date = updated_data.get("publication_date", book.publication_date)
+            book.publication_date = updated_data.get(
+                "publication_date", book.publication_date
+            )
             book.publisher = updated_data.get("publisher", book.publisher)
             book.description = updated_data.get("description", book.description)
             book.cover_image = updated_data.get("cover_image", book.cover_image)
-            
+
             # Добавление авторов и категорий
             authors = updated_data.get("authors", [])
             for author_name in authors:
@@ -384,7 +392,7 @@ class Book(Resource):
                     db.session.commit()
                 if author not in book.authors:
                     book.authors.append(author)
-            
+
             categories = updated_data.get("categories", [])
             for category_name in categories:
                 category = Category.query.filter_by(name=category_name).first()
@@ -394,7 +402,7 @@ class Book(Resource):
                     db.session.commit()
                 if category not in book.categories:
                     book.categories.append(category)
-            
+
             # Пытаемся зафиксировать изменения в базе данных
             try:
                 db.session.commit()
@@ -403,7 +411,7 @@ class Book(Resource):
                 response = jsonify({"message": "Error updating book"})
                 response.status_code = 500
                 return response
-            
+
             # Возвращаем обновленные данные книги
             response = jsonify(book.as_dict())
             response.status_code = 200
@@ -419,11 +427,11 @@ class Book(Resource):
                 response.status_code = 404
                 return response
 
-            # Удаляем авторов книги            
+            # Удаляем авторов книги
             for author in book.authors:
                 book.authors.remove(author)
 
-            # Удаляем категории книги            
+            # Удаляем категории книги
             for category in book.categories:
                 book.categories.remove(category)
 
@@ -513,7 +521,7 @@ class Book(Resource):
 #             if book_obj:
 #                 response = jsonify(book_obj.as_dict())
 #                 response.status_code = 200
-#                 return response                
+#                 return response
 #             # Создаем новый объект книги и добавляем его в базу данных
 #             book_obj = BookModel(**new_book)
 #             try:
@@ -563,7 +571,7 @@ class BookCategories(Resource):
                 response = jsonify({"message": "Book not found"})
                 response.status_code = 404
                 return response
-            
+
             categories = book.categories
             response = jsonify([category.as_dict() for category in categories])
             response.status_code = 200
@@ -645,13 +653,13 @@ class BookAuthors(Resource):
                 # Возвращаем данные
                 response = jsonify({"message": "Book not found"})
                 response.status_code = 404
-                return response   
+                return response
 
             authors = book.authors
             # Возвращаем данные
             response = jsonify([author.as_dict() for author in authors])
             response.status_code = 200
-            return response            
+            return response
 
     @jwt_required()
     def post(self, book_id):
@@ -661,7 +669,7 @@ class BookAuthors(Resource):
                 # Возвращаем данные
                 response = jsonify({"message": "Book not found"})
                 response.status_code = 404
-                return response   
+                return response
 
             author_data = request.get_json()
             author_id = author_data.get("author_id")
@@ -669,28 +677,27 @@ class BookAuthors(Resource):
                 # Возвращаем данные
                 response = jsonify({"message": "Author ID is required"})
                 response.status_code = 400
-                return response   
-
+                return response
 
             author = AuthorModel.query.filter_by(id=author_id).first()
             if not author:
                 # Возвращаем данные
                 response = jsonify({"message": "Author not found"})
                 response.status_code = 404
-                return response   
-           
+                return response
+
             if author in book.authors:
                 # Возвращаем данные
                 response = jsonify({"message": "Author already added to the book"})
                 response.status_code = 400
-                return response   
+                return response
 
             book.authors.append(author)
             db.session.commit()
             # Возвращаем данные
             response = jsonify({"message": "Author added to the book"})
             response.status_code = 200
-            return response    
+            return response
 
     @jwt_required()
     def delete(self, book_id):
@@ -700,7 +707,7 @@ class BookAuthors(Resource):
                 # Возвращаем данные
                 response = jsonify({"message": "Book not found"})
                 response.status_code = 404
-                return response    
+                return response
 
             author_data = request.get_json()
             author_id = author_data.get("author_id")
@@ -708,31 +715,27 @@ class BookAuthors(Resource):
                 # Возвращаем данные
                 response = jsonify({"message": "Author ID is required"})
                 response.status_code = 400
-                return response    
+                return response
 
             author = AuthorModel.query.filter_by(id=author_id).first()
             if not author:
                 # Возвращаем данные
                 response = jsonify({"message": "Author not found"})
                 response.status_code = 404
-                return response    
-
+                return response
 
             if author not in book.authors:
                 # Возвращаем данные
                 response = jsonify({"message": "Author not found in the book"})
                 response.status_code = 400
-                return response    
-                
+                return response
+
             book.authors.remove(author)
             db.session.commit()
             # Возвращаем данные
             response = jsonify({"message": "Author removed to the book"})
             response.status_code = 200
-            return response    
-
-
-
+            return response
 
 
 class FileList(Resource):
@@ -770,11 +773,11 @@ class FileList(Resource):
         shutil.move(cache_path, file_path)
         # Обновляем данные о книге с информацией о файле
         fule_dct = {
-                "id": file_hash,
-                "filename_orig": file.filename,
-                "filename_uid": uid_filename,
-                "file_path": file_path,
-            }
+            "id": file_hash,
+            "filename_orig": file.filename,
+            "filename_uid": uid_filename,
+            "file_path": file_path,
+        }
         # Возвращаем данные о добавленном файле
         response = jsonify(fule_dct)
         response.status_code = 200
@@ -817,10 +820,10 @@ api.add_resource(BookAuthors, "/books/<string:book_id>/authors")
 api.add_resource(BookCategories, "/books/<string:book_id>/categories")
 
 if __name__ == "__main__":
-    DEBUG = True
+    DEBUG = False
     with app.app_context():
         db.create_all()
     if DEBUG:
-        app.run(debug=True, host='127.0.0.1', port=8001)
+        app.run(debug=True, host="127.0.0.1", port=8001)
     else:
-        app.run(host='192.168.3.27', port=8001)
+        app.run(host="192.168.3.27", port=8001)
