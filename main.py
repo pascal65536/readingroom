@@ -817,7 +817,7 @@ api.add_resource(BookAuthors, "/books/<string:book_id>/authors")
 api.add_resource(BookCategories, "/books/<string:book_id>/categories")
 
 if __name__ == "__main__":
-    DEBUG = True
+    DEBUG = False
     with app.app_context():
         db.create_all()
     if DEBUG:
