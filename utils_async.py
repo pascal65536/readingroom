@@ -54,6 +54,13 @@ class APISession:
         async with self.session.delete(url, headers=headers) as response:
             return await response.json()
 
+    async def author_get(self, author_id):
+        """GET /authors/<id>"""
+        url = f"{self.base_url}/authors/{author_id}"
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+        async with self.session.get(url, headers=headers) as response:
+            return await response.json()
+
     async def books_get(self):
         """GET /books"""
         url = f"{self.base_url}/books"
@@ -476,7 +483,7 @@ async def main():
     ret = await api_session.category_get(1)
     assert ret == {"message": "Category not found"}, "Error in `category_get`"
 
-    # Получение категории 1
+    # Удаление категории 1
     ret = await api_session.category_delete(1)
     assert ret == {"message": "Category not found"}, "Error in `category_delete`"
 
