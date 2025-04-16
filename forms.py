@@ -4,6 +4,12 @@ from wtforms.validators import DataRequired, Length, URL, Optional
 from flask_wtf.file import FileAllowed, FileField, FileRequired
 
 
+class Select2MultipleField(SelectMultipleField):
+    def pre_validate(self, form):
+        # Отключение ошибки "not a valid choice"
+        pass
+
+
 class UploadForm(FlaskForm):
     file = FileField("Файл", validators=[DataRequired()])
     submit = SubmitField("Загрузить")
@@ -28,6 +34,6 @@ class BookForm(FlaskForm):
     telegram_link = StringField('Telegram Link', validators=[Length(max=200)])
     telegram_file_id = StringField('Telegram File ID', validators=[Length(max=200)])
     description = TextAreaField('Описание')
-    authors = SelectMultipleField('Authors', choices=[])    
-    categories = SelectMultipleField('Categories', choices=[])    
+    authors = Select2MultipleField('Авторы', choices=[], validators=[])
+    categories = Select2MultipleField('Категории', choices=[], validators=[])
     submit = SubmitField('Сохранить')
