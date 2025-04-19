@@ -1,0 +1,29 @@
+<div class="accordion" id="search-results-accordion">
+    {% if results %}
+      {% for result in results %}
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading-{{ loop.index }}">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ loop.index }}" aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
+              {{ result.title }}
+            </button>
+          </h2>
+          <div id="collapse-{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ loop.index }}" data-bs-parent="#search-results-accordion">
+            <div class="accordion-body">
+                {% for book_field in result %}
+                    {% if result[book_field] %}                    
+                        {% if 'thumbnail' in book_field %}
+                        <p><img src="{{ result[book_field] }}" /></p>
+                        {% else %}
+                        <p><strong>{{ book_field }}</strong>:<br />{{ result[book_field] }}</p>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>Ничего не найдено.</p>
+    {% endif %}
+  </div>
+  

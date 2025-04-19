@@ -45,7 +45,7 @@ async def main1():
         api_session.download_file("3091401a1c74bfd441ace8d420f1e524.pdf", "1.pdf"),
         api_session.download_file("926d51b67bd5143a49f70513bef45952.png", "1.pdf"),
         api_session.authors_get(),
-        api_session.author_get(2),        
+        api_session.author_get(2),
     ]
 
     results = await asyncio.gather(*parallel_tasks)
@@ -53,7 +53,7 @@ async def main1():
         print(res)
 
     await api_session.close()
-    print("Done")    
+    print("Done")
 
 
 async def main():
@@ -64,12 +64,16 @@ async def main():
 
     tasks = [
         asyncio.create_task(api_session.upload_file("fixtures/1.pdf")),
-        asyncio.create_task(api_session.upload_file("fixtures/1.png")),        
-        asyncio.create_task(api_session.book_get('c78844812d07a05aa01cab0253dce1c7')),
+        asyncio.create_task(api_session.upload_file("fixtures/1.png")),
+        asyncio.create_task(api_session.book_get("c78844812d07a05aa01cab0253dce1c7")),
         asyncio.create_task(api_session.author_get(2)),
-        asyncio.create_task(api_session.category_get(1)),        
-        asyncio.create_task(api_session.download_file("3091401a1c74bfd441ace8d420f1e524.pdf", "2.pdf")),
-        asyncio.create_task(api_session.download_file("926d51b67bd5143a49f70513bef45952.png", "2.pdf")),
+        asyncio.create_task(api_session.category_get(1)),
+        asyncio.create_task(
+            api_session.download_file("3091401a1c74bfd441ace8d420f1e524.pdf", "2.pdf")
+        ),
+        asyncio.create_task(
+            api_session.download_file("926d51b67bd5143a49f70513bef45952.png", "2.pdf")
+        ),
         asyncio.create_task(api_session.books_get()),
         asyncio.create_task(api_session.authors_get()),
         asyncio.create_task(api_session.categories_get()),
@@ -81,7 +85,7 @@ async def main():
         # print(f"{result=} {datetime.now().time()}")
 
     await api_session.close()
-    print("Done")    
+    print("Done")
 
 
 # Запускаем асинхронные задачи

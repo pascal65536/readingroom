@@ -6,6 +6,7 @@ from flask import (
     url_for,
     flash,
     send_from_directory,
+    jsonify,
 )
 from utils import (
     get_access_token,
@@ -57,37 +58,39 @@ def get_image(filename):
     return send_from_directory("_download", filename)
 
 
-@app.route("/google_me/<search>/")
-def google_me(search):
-    # тут типо запрос Google Books API
+@app.route('/google_me/', methods=['POST'])
+def google_me():
+    query = request.form.get('query', '')
     google_books_url = "https://www.googleapis.com/books/v1/volumes"
-    params = {"q": search, "maxResults": 10}  # maxResults это типо первая подходящая
+    params = {"q": query, "maxResults": 25}  
     response = requests.get(google_books_url, params=params)
-    # тут я ещё добавила на случай ошибки, но уже когда доделала подумала что зря так как если ничего не найдено то лучше наверное что бы ничего не возвращало
     if response.status_code != 200:
         return jsonify({"error": "Ошибка при обращении к Google Books API"}), 500
-    data = response.json()
-    if "items" not in data or not data["items"]:
-        return jsonify({"error": "Книга не найдена"}), 404
-    book_info = data["items"][0]["volumeInfo"]
-    # Формируем JSONчик, в телеграмном ставлю none потому что пока нечего
-    json_data = {
-        "title": book_info.get("title"),
-        "isbn": next(
-            (
-                id["identifier"]
-                for id in book_info.get("industryIdentifiers", [])
-                if id["type"] in ["ISBN_10", "ISBN_13"]
-            ),
-            None,
-        ),
-        "publication_date": book_info.get("publishedDate"),
-        "publisher": book_info.get("publisher"),
-        "description": book_info.get("description"),
-        "telegram_link": None,
-        "telegram_file_id": None,
-    }
-    return jsonify(data)
+    results = list()
+    for data in response.json().get('items', list()):
+        book_info = data["volumeInfo"]
+        json_data = dict()
+        json_data['title'] = book_info.get('title')
+        json_data['thumbnail'] = book_info.get('imageLinks', dict()).get('thumbnail')         
+        json_data['publishedDate'] = book_info.get('publishedDate')
+        json_data['publisher'] = book_info.get('publisher')
+        json_data['description'] = book_info.get('description')
+        json_data['language'] = book_info.get('language')       
+        for industryIdentifiers_dct in book_info.get('industryIdentifiers', list()):
+            if industryIdentifiers_dct:
+                json_data[industryIdentifiers_dct['type']] = industryIdentifiers_dct['identifier']
+        for num, author in enumerate(book_info.get('authors', list())):
+            if author:
+                json_data[f'author_{num}'] = author
+        for num, category in enumerate(book_info.get('categories', list())):
+            if category:
+                json_data[f'category_{num}'] = category       
+
+        results.append(json_data)
+    rendered_template = render_template('_accordion.html', results=results)
+    return rendered_template
+
+
 
 
 # authors
