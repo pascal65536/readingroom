@@ -89,3 +89,6 @@ old/
 uploads/
 _cache/
 _download/
+*.session
+settings.py
+settings.py
