@@ -7,6 +7,7 @@ from flask import (
     flash,
     send_from_directory,
     jsonify,
+    send_file,
 )
 from utils import (
     get_access_token,
@@ -195,6 +196,18 @@ def books():
     access_token = access_token_dct.get("access_token")
     books = books_get(access_token, govdatahub=cridentials[2])
     return render_template("books_lst.html", books=books)
+
+
+@app.route("/book/<string:book_id>/download")
+def download_book(book_id):
+    # Скачивание книги
+    access_token_dct = get_access_token(*cridentials)
+    access_token = access_token_dct.get("access_token")    
+    ret = download_file(book_id, book_id, access_token, govdatahub=cridentials[2])
+    if 'file_path' in ret:
+        file_path = ret["file_path"]
+        return send_file(file_path, as_attachment=True)
+    return redirect(url_for("index"))
 
 
 @app.route("/book/<string:book_id>")

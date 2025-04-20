@@ -335,7 +335,7 @@ def category_delete(category_id, access_token, govdatahub="localhost:5000"):
 def download_file(filename, local_name, access_token, govdatahub="localhost:5000"):
     """GET /file/<id>"""
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"http://{govdatahub}/file/{filename}"
+    url = f"http://{govdatahub}/file/{filename}"    
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         file_path = os.path.join("_download", local_name)
