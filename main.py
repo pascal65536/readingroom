@@ -2,7 +2,6 @@ import os
 import uuid
 import json
 import shutil
-import hashlib
 from extensions import db
 from models import Book as BookModel
 from flask_restful import Api, Resource
@@ -16,6 +15,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 from werkzeug.utils import secure_filename
+from behoof_local import calculate_md5
 
 
 app = Flask(__name__)
@@ -62,14 +62,6 @@ def protected():
     current_user = get_jwt_identity()
     return jsonify(logged_in_as=current_user), 200
 
-
-# Функция для расчета MD5
-def calculate_md5(file_path):
-    hash_md5 = hashlib.md5()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
 
 
 def upload(file, allowed_extensions={"jpg", "jpeg", "png", "gif"}):

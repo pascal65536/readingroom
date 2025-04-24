@@ -89,3 +89,5 @@ old/
 uploads/
 _cache/
 _download/
+pyro_settings.py
+*.session
