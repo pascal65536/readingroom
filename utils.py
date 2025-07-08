@@ -3,7 +3,7 @@ import json
 import os
 
 
-def get_access_token(username, password, govdatahub="localhost:5000"):
+def get_access_token(username, password, govdatahub="localhost:8001"):
     """
     POST /login
     """
@@ -17,7 +17,7 @@ def get_access_token(username, password, govdatahub="localhost:5000"):
         print(f"Error in `get_access_token` {e}")
 
 
-def get_book_authors(book_id, access_token, govdatahub="localhost:5000"):
+def get_book_authors(book_id, access_token, govdatahub="localhost:8001"):
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}",
@@ -30,7 +30,7 @@ def get_book_authors(book_id, access_token, govdatahub="localhost:5000"):
         print(f"Error in `add_author_to_book` {e}")
 
 
-def add_author_to_book(book_id, author_id, access_token, govdatahub="localhost:5000"):
+def add_author_to_book(book_id, author_id, access_token, govdatahub="localhost:8001"):
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}",
@@ -45,7 +45,7 @@ def add_author_to_book(book_id, author_id, access_token, govdatahub="localhost:5
 
 
 def remove_author_from_book(
-    book_id, author_id, access_token, govdatahub="localhost:5000"
+    book_id, author_id, access_token, govdatahub="localhost:8001"
 ):
     headers = {
         "Content-Type": "application/json",
@@ -60,7 +60,7 @@ def remove_author_from_book(
         print(f"Error in `add_author_to_book` {e}")
 
 
-def get_book_categories(book_id, access_token, govdatahub="localhost:5000"):
+def get_book_categories(book_id, access_token, govdatahub="localhost:8001"):
     """
     GET /books/<book_id>/categories
     """
@@ -73,7 +73,7 @@ def get_book_categories(book_id, access_token, govdatahub="localhost:5000"):
         print(f"Error in `get_book_categories`: {e}")
 
 
-def book_create(file_id, json_data, access_token, govdatahub="localhost:5000"):
+def book_create(file_id, json_data, access_token, govdatahub="localhost:8001"):
     """POST /books/<id>"""
     url = f"http://{govdatahub}/books/{file_id}"
     headers = {
@@ -88,7 +88,7 @@ def book_create(file_id, json_data, access_token, govdatahub="localhost:5000"):
 
 
 def add_category_to_book(
-    book_id, category_id, access_token, govdatahub="localhost:5000"
+    book_id, category_id, access_token, govdatahub="localhost:8001"
 ):
     """
     POST /books/<book_id>/categories
@@ -104,7 +104,7 @@ def add_category_to_book(
 
 
 def remove_category_from_book(
-    book_id, category_id, access_token, govdatahub="localhost:5000"
+    book_id, category_id, access_token, govdatahub="localhost:8001"
 ):
     """
     DELETE /books/<book_id>/categories
@@ -119,7 +119,7 @@ def remove_category_from_book(
         print(f"Error in `remove_category_from_book`: {e}")
 
 
-def book_get(book_id, access_token, govdatahub="localhost:5000"):
+def book_get(book_id, access_token, govdatahub="localhost:8001"):
     """
     GET /books/<id>
     """
@@ -132,7 +132,7 @@ def book_get(book_id, access_token, govdatahub="localhost:5000"):
         print(f"Error in `book_get` {e}")
 
 
-def book_update(book_id, json_data, access_token, govdatahub="localhost:5000"):
+def book_update(book_id, json_data, access_token, govdatahub="localhost:8001"):
     """
     PUT /books/<id>
     """
@@ -145,7 +145,7 @@ def book_update(book_id, json_data, access_token, govdatahub="localhost:5000"):
         print(f"Error in `book_update` without cover_image: {e}")
 
 
-def book_download(book_id, access_token, govdatahub="localhost:5000"):
+def book_download(book_id, access_token, govdatahub="localhost:8001"):
     """
     GET /download/<id>
     """
@@ -158,7 +158,7 @@ def book_download(book_id, access_token, govdatahub="localhost:5000"):
         print(f"Error in `book_download` {e}")
 
 
-def book_delete(book_id, access_token, govdatahub="localhost:5000"):
+def book_delete(book_id, access_token, govdatahub="localhost:8001"):
     """
     DELETE /books/<id>
     """
@@ -171,7 +171,7 @@ def book_delete(book_id, access_token, govdatahub="localhost:5000"):
         print(f"Error in `book_delete` {e}")
 
 
-def upload_file(file_path, access_token, govdatahub="localhost:5000"):
+def upload_file(file_path, access_token, govdatahub="localhost:8001"):
     """
     POST /file
     """
@@ -188,7 +188,7 @@ def upload_file(file_path, access_token, govdatahub="localhost:5000"):
             print(f"Error in `book_upload` {e}")
 
 
-def books_get(access_token, govdatahub="localhost:5000"):
+def books_get(access_token, govdatahub="localhost:8001"):
     """
     GET /books
     """
@@ -201,7 +201,7 @@ def books_get(access_token, govdatahub="localhost:5000"):
         print(f"Error in `books_get` {e}")
 
 
-def authors_get(access_token, govdatahub="localhost:5000"):
+def authors_get(access_token, govdatahub="localhost:8001"):
     """
     GET /authors
     """
@@ -214,7 +214,7 @@ def authors_get(access_token, govdatahub="localhost:5000"):
         print(f"Error in `authors_get` {e}")
 
 
-def author_post(json_data, access_token, govdatahub="localhost:5000"):
+def author_post(json_data, access_token, govdatahub="localhost:8001"):
     """
     POST /authors
     """
@@ -227,7 +227,7 @@ def author_post(json_data, access_token, govdatahub="localhost:5000"):
         print(f"Error in `author_post` {e}")
 
 
-def author_get(author_id, access_token, govdatahub="localhost:5000"):
+def author_get(author_id, access_token, govdatahub="localhost:8001"):
     """
     GET /authors
     """
@@ -241,7 +241,7 @@ def author_get(author_id, access_token, govdatahub="localhost:5000"):
         print(f"Error in `author_put` {e}")
 
 
-def author_put(author_id, json_data, access_token, govdatahub="localhost:5000"):
+def author_put(author_id, json_data, access_token, govdatahub="localhost:8001"):
     """
     PUT /authors
     """
@@ -254,7 +254,7 @@ def author_put(author_id, json_data, access_token, govdatahub="localhost:5000"):
         print(f"Error in `author_put` {e}")
 
 
-def author_delete(author_id, access_token, govdatahub="localhost:5000"):
+def author_delete(author_id, access_token, govdatahub="localhost:8001"):
     """
     DELETE /authors/<id>
     """
@@ -267,7 +267,7 @@ def author_delete(author_id, access_token, govdatahub="localhost:5000"):
         print(f"Error in `authors_delete` {e}")
 
 
-def categories_get(access_token, govdatahub="localhost:5000"):
+def categories_get(access_token, govdatahub="localhost:8001"):
     """
     GET /categories
     """
@@ -280,7 +280,7 @@ def categories_get(access_token, govdatahub="localhost:5000"):
         print(f"Error in `categories_get`: {e}")
 
 
-def category_get(category_id, access_token, govdatahub="localhost:5000"):
+def category_get(category_id, access_token, govdatahub="localhost:8001"):
     """
     GET /categories/<id>
     """
@@ -293,7 +293,7 @@ def category_get(category_id, access_token, govdatahub="localhost:5000"):
         print(f"Error in `category_get`: {e}")
 
 
-def category_post(json_data, access_token, govdatahub="localhost:5000"):
+def category_post(json_data, access_token, govdatahub="localhost:8001"):
     """
     POST /categories
     """
@@ -306,7 +306,7 @@ def category_post(json_data, access_token, govdatahub="localhost:5000"):
         print(f"Error in `category_post`: {e}")
 
 
-def category_put(category_id, json_data, access_token, govdatahub="localhost:5000"):
+def category_put(category_id, json_data, access_token, govdatahub="localhost:8001"):
     """
     PUT /categories/<id>
     """
@@ -319,7 +319,7 @@ def category_put(category_id, json_data, access_token, govdatahub="localhost:500
         print(f"Error in `category_put`: {e}")
 
 
-def category_delete(category_id, access_token, govdatahub="localhost:5000"):
+def category_delete(category_id, access_token, govdatahub="localhost:8001"):
     """
     DELETE /categories/<id>
     """
@@ -332,7 +332,7 @@ def category_delete(category_id, access_token, govdatahub="localhost:5000"):
         print(f"Error in `category_delete`: {e}")
 
 
-def download_file(filename, local_name, access_token, govdatahub="localhost:5000"):
+def download_file(filename, local_name, access_token, govdatahub="localhost:8001"):
     """GET /file/<id>"""
     headers = {"Authorization": f"Bearer {access_token}"}
     url = f"http://{govdatahub}/file/{filename}"
