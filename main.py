@@ -13,6 +13,9 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from werkzeug.utils import secure_filename
 
 
+PAGING_LIMIT = 30
+
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'  # Каталог, где хранятся обложки
 app.config["DATA_FOLDER"] = "data"
@@ -92,7 +95,7 @@ def upload(file, allowed_extensions={'jpg', 'jpeg', 'png', 'gif'}):
 @app.route("/")
 def index():
     books_list = list()
-    for book in BookModel.query.all()[:30]:
+    for book in BookModel.query.limit(PAGING_LIMIT).all():
         books_list.append(book.as_dict())
     return jsonify(books_list)
 
@@ -100,7 +103,7 @@ def index():
 # Ресурсы для авторов
 class AuthorList(Resource):
     def get(self):
-        authors = AuthorModel.query.all()
+        authors = AuthorModel.query.limit(PAGING_LIMIT).all()
         author_list = list()
         for author in authors:
             author_list.append(author.as_dict())
@@ -210,7 +213,7 @@ class Author(Resource):
 # Ресурсы для категорий
 class CategoryList(Resource):
     def get(self):
-        categories = CategoryModel.query.all()
+        categories = CategoryModel.query.limit(PAGING_LIMIT).all()
         category_list = [category.as_dict() for category in categories]
         return jsonify(category_list)
 
@@ -305,7 +308,7 @@ class Category(Resource):
 # Ресурсы для книг
 class BookList(Resource):
     def get(self):
-        books = BookModel.query.all()
+        books = BookModel.query.limit(PAGING_LIMIT).all()
         books_list = list()
         for book in books:
             books_list.append(book.as_dict())
