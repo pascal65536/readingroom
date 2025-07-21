@@ -451,108 +451,6 @@ class Book(Resource):
             return response
 
 
-# Ресурсы для загрузки файлов
-# class FileUpload(Resource):
-#     @jwt_required()
-#     def post(self):
-#         # Проверяем наличие файла в запросе
-#         if "file" not in request.files:
-#             response = jsonify({"message": "No file part"})
-#             response.status_code = 400
-#             return response
-#         file = request.files["file"]
-#         # Проверяем, выбран ли файл
-#         if file.filename == "":
-#             response = jsonify({"message": "No selected file"})
-#             response.status_code = 400
-#             return response
-#         # Получаем данные о книге из формы
-#         new_book = request.form.get("json_data")
-#         if not new_book:
-#             response = jsonify({"message": "No book data provided"})
-#             response.status_code = 400
-#             return response
-#         try:
-#             # Парсим данные о книге из JSON
-#             new_book = json.loads(new_book)
-#         except json.JSONDecodeError:
-#             response = jsonify({"message": "Invalid JSON data"})
-#             response.status_code = 400
-#             return response
-#         # Проверяем тип файла
-#         ext = file.filename.rsplit(".", 1)[-1].lower()
-#         if ext not in {"pdf", "epub", "mobi"}:
-#             response = jsonify({"message": "File type not allowed"})
-#             response.status_code = 400
-#             return response
-#         # Генерируем уникальный идентификатор и создаем путь для временного хранения
-#         uid = str(uuid.uuid4())
-#         new_filename = f"{uid}.{ext}"
-#         cache_path = os.path.join(app.config["CACHE_FOLDER"], new_filename)
-#         file.save(cache_path)
-#         file_hash = calculate_md5(cache_path)
-#         uid02 = file_hash[:2]
-#         uid24 = file_hash[2:4]
-#         folder_path = os.path.join(app.config["UPLOAD_FOLDER"], uid02, uid24)
-#         os.makedirs(folder_path, exist_ok=True)
-#         uid_filename = f"{file_hash}.{ext}"
-#         file_path = os.path.join(folder_path, uid_filename)
-#         shutil.move(cache_path, file_path)
-#         # Обновляем данные о книге с информацией о файле
-#         new_book.update(
-#             {
-#                 "id": file_hash,
-#                 "filename_orig": file.filename,
-#                 "filename_uid": uid_filename,
-#                 "file_path": file_path,
-#             }
-#         )
-#         # Проверяем, существует ли уже книга с таким хешем
-#         with app.app_context():
-#             book_obj = BookModel.query.filter_by(id=file_hash).first()
-#             if book_obj:
-#                 response = jsonify(book_obj.as_dict())
-#                 response.status_code = 200
-#                 return response                
-#             # Создаем новый объект книги и добавляем его в базу данных
-#             book_obj = BookModel(**new_book)
-#             try:
-#                 db.session.add(book_obj)
-#                 db.session.commit()
-#             except Exception as e:
-#                 db.session.rollback()
-#                 response = jsonify({"message": "Error adding book"})
-#                 response.status_code = 500
-#                 return response
-#         # Возвращаем данные о добавленной книге
-#         response = jsonify(new_book)
-#         response.status_code = 200
-#         return response
-
-
-# class FileDownload(Resource):
-#     @jwt_required()
-#     def get(self, book_id):
-#         with app.app_context():
-#             # Ищем книгу по id
-#             book = BookModel.query.filter_by(id=book_id).first()
-#             if not book:
-#                 response = jsonify({"message": "Book not found"})
-#                 response.status_code = 404
-#                 return response
-
-#             if not os.path.exists(book.file_path):
-#                 response = jsonify({"message": "File not found on server"})
-#                 response.status_code = 404
-#                 return response
-
-#             # Создаем ответ с файлом и устанавливаем заголовок Content-Disposition
-#             return send_from_directory(
-#                 os.path.dirname(book.file_path),
-#                 os.path.basename(book.file_path),
-#                 as_attachment=True,
-#             )
-
 
 class BookCategories(Resource):
     @jwt_required()
@@ -730,8 +628,6 @@ class BookAuthors(Resource):
             response = jsonify({"message": "Author removed to the book"})
             response.status_code = 200
             return response    
-
-
 
 
 
