@@ -27,6 +27,7 @@ class Base(DeclarativeBase): pass
 
 # class User(Base): ...
 # class UserAuthor(Base): ...
+# class Grade(Base): ...
 
 # class CustomBook(Base): ...
 # class UserCustomBook(Base): ...
@@ -36,7 +37,7 @@ class Base(DeclarativeBase): pass
 # class Message(Base): ...
 
 # class BookDistribution(Base): ...
-# class Transaction(Base): ...
+# class Order(Base): ...
 
 
 
@@ -95,7 +96,7 @@ class Author(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
     name = Column(String(31), nullable=False)
-    date_birth = Column(Date, nullable=False)
+    date_birth = Column(Date)
     date_death = Column(Date)
     address_id = Column(Integer, ForeignKey("geo_address"))
 
@@ -106,7 +107,7 @@ class OriginalBook(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
     name = Column(String(255))
-    writing_date = Column(Date, nullable=False)
+    writing_date = Column(Date)
     # Если понадобится оригинальный текст
     # text = Column(Integer, ForeignKey("file"), unique=True) | Column(Integer, Text, unique=True, nullable=False)
 
@@ -135,7 +136,7 @@ class Book(Base):
     __tablename__ = "book"
 
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    isbn = Column(String(13), unique=True, nullable=False)
+    isbn = Column(String(13), unique=True)
     title = Column(Text())
     original_id = Column(Integer, ForeignKey("оriginal_book"), nullable=False)
     cover_id = Column(Integer, ForeignKey("file"))
@@ -143,7 +144,6 @@ class Book(Base):
     publisher_id = Column(Integer, ForeignKey("publisher"))
     publication_date = Column(Date, nullable=False)
     count_copy = Column(Integer, nullable=False) # количество ссылок, может быть полезно для статистики
-    grade = Column(Float)
 
 
 
@@ -158,6 +158,30 @@ class User(Base):
     title = Column(Text())
     email = Column(String(320))
     ...
+
+
+class UserAuthor(Base):
+    """
+    Пользователь может быть несколькими авторами (псевдонимы)
+    Также, в редких случаях, и несколько пользователей могут быть одним автором
+    """
+    __tablename__ = "user-author"
+
+    user_id = Column(Integer, ForeignKey("User"), nullable=False)
+    author_id = Column(Integer, ForeignKey("Author"), nullable=False)
+
+
+class Grade(Base):
+    """
+    Оценка книг пользователями, вычисляется как среднее числительное
+    Возможно будет долго вычислятся
+    """
+    __tablename__ = "grade"
+
+    user_id = Column(Integer, ForeignKey("user"), nullable=False)
+    original_book_id = Column(Integer, ForeignKey("original_book"), nullable=False)
+    grade = Column(Integer, nullable=False)
+
 
 
 class CustomBook(Base):
@@ -207,17 +231,6 @@ class UserСustomBook(Base):
                                  # если == 0: автоудаление
 
 
-class UserAuthor(Base):
-    """
-    Пользователь может быть несколькими авторами (псевдонимы)
-    Также, в редких случаях, и несколько пользователей могут быть одним автором
-    """
-    __tablename__ = "user-author"
-
-    user_id = Column(Integer, ForeignKey("User"), nullable=False)
-    author_id = Column(Integer, ForeignKey("Author"), nullable=False)
-
-
 
 class Group(Base):
     __tablename__ = "group"
@@ -243,7 +256,7 @@ class Message(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
     sender_id = Column(Integer, ForeignKey("user"), nullable=False)
-    group_id = Column(Integer, ForeignKey("group"), nullable=False)
+    group_id = Column(Integer, ForeignKey("group"))
     # send_id = Column(Integer, ForeignKey("user-group"), nullable=False)
     # Возможно лучше будет сделать ссылку на отношение UserGroup, а не User и Group по отдельности
     # вместо отдельных полей sender group
@@ -276,8 +289,8 @@ class BookDistribution(Base):
     # цена за копию или за весь тирраж, если count_copy == NULL
 
 
-class Transaction(Base):
-    __tablename__ = "transaction"
+class Order(Base):
+    __tablename__ = "order"
 
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
     buyer = Column(Integer, ForeignKey("user"), nullable=False)
