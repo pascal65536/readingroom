@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Все книги</h1>
+  {% for item in books %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">{{ item.title }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">{{ item.id }}</h6>
+        <p class="card-text">text</p>
+      </div>
+    </div>
+  {% else %}
+    <p>Нет книг</p>
+  {% endfor %}
+{% endblock %}

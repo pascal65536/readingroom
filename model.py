@@ -1,190 +1,185 @@
-# Это конечно не точная и не завершённая модель
-
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import  (
-    Column, ForeignKey,
-    Boolean, Integer, Float, Numeric,
-    String, Text, 
-    Date, DateTime
-)
+from extensions import db
+# db: (
+#     Model, Column, ForeignKey,
+#     Boolean, db.Integer, Numeric,
+#     String, Text,
+#     Date, DateTime
+# )
 
 
-class Base(DeclarativeBase): pass
+# class File(db.Model): ...
+# class FileHead(db.Model): ...
+# class FileData(db.Model): ...
 
+# class GeoAddress(db.Model): ...
 
-# class File(Base): ...
-# class FileHead(Base): ...
-# class FileData(Base): ...
+# class Author(db.Model): ...
+# class AuthorBook(db.Model): ...
+# class OriginalBook(db.Model): ...
 
-# class GeoAddress(Base): ...
+# class Publisher(db.Model): ...
+# class Book(db.Model): ...
 
-# class Author(Base): ...
-# class AuthorBook(Base): ...
-# class OriginalBook(Base): ...
+# class User(db.Model): ...
+# class UserAuthor(db.Model): ...
+# class Grade(db.Model): ...
 
-# class Publisher(Base): ...
-# class Book(Base): ...
+# class CustomBook(db.Model): ...
+# class UserCustomBook(db.Model): ...
 
-# class User(Base): ...
-# class UserAuthor(Base): ...
-# class Grade(Base): ...
+# class Group(db.Model): ...
+# class UserGroup(db.Model): ...
+# class Message(db.Model): ...
 
-# class CustomBook(Base): ...
-# class UserCustomBook(Base): ...
-
-# class Group(Base): ...
-# class UserGroup(Base): ...
-# class Message(Base): ...
-
-# class BookDistribution(Base): ...
-# class Order(Base): ...
+# class BookDistribution(db.Model): ...
+# class Order(db.Model): ...
 
 
 
-class File(Base):
+class File(db.Model):
     __tablename__ = "file"
   
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    head_id = Column(Integer, ForeignKey("file_head"), nullable=False)
-    data_id = Column(Integer, ForeignKey("file_data"), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    head_id = db.Column(db.Integer, db.ForeignKey("file_head"), nullable=False, index=True)
+    data_id = db.Column(db.Integer, db.ForeignKey("file_data"), nullable=False, index=True)
 
 
-class FileHead(Base):
+class FileHead(db.Model):
     """
     Заголовок файла - данные (обычно визуальные), которуе может исменить пользователь
     (это позволяет разным пользователям иметь один файл с разным иминем)
     """
     __tablename__ = "file_head"
   
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    name = Column(String(255))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    name = db.Column(db.String(255))
     ...
 
 
-class FileData(Base):
+class FileData(db.Model):
     """
     Данные неизменяемые пользователем
     """
     __tablename__ = "file_data"
   
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    path = Column(String(255), unique=True, nullable=False)
-    # count = Column(Integer, nullable=False)  # Подсчёт ссылок в случае, если мы будем автоматически удалять неиспользуемый файл
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    path = db.Column(db.String(255), unique=True, nullable=False)
+    # count = db.Column(db.Integer, nullable=False)  # Подсчёт ссылок в случае, если мы будем автоматически удалять неиспользуемый файл
 
 
 
-class GeoAddress(Base):
+class GeoAddress(db.Model):
     __tablename__ = "geo_address"
     
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    country = Column(String(63))
-    region = Column(String(63))
-    city = Column(String(63))
-    street = Column(String(127))
-    building = Column(String(20))
-    apartment = Column(String(20))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    country = db.Column(db.String(63))
+    region = db.Column(db.String(63))
+    city = db.Column(db.String(63))
+    street = db.Column(db.String(127))
+    building = db.Column(db.String(20))
+    apartment = db.Column(db.String(20))
     # Координаты (для карт)
-    latitude = Column(Numeric(9, 6))  # Широта: 90.000000
-    longitude = Column(Numeric(9, 6)) # Долгота: 180.000000
+    latitude = db.Column(db.Numeric(9, 6))  # Широта: 90.000000
+    longitude = db.Column(db.Numeric(9, 6)) # Долгота: 180.000000
     # Почтовый индекс
-    postal_code = Column(String(16))
+    postal_code = db.Column(db.String(16))
 
 
 
-class Author(Base):
+class Author(db.Model):
     __tablename__ = "author"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    name = Column(String(31), nullable=False)
-    date_birth = Column(Date)
-    date_death = Column(Date)
-    address_id = Column(Integer, ForeignKey("geo_address"))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    name = db.Column(db.String(31), nullable=False)
+    date_birth = db.Column(db.Date, index=True)
+    date_death = db.Column(db.Date, index=True)
+    address_id = db.Column(db.Integer, db.ForeignKey("geo_address"), index=True)
 
 
 
-class OriginalBook(Base):
+class OriginalBook(db.Model):
     __tablename__ = "оriginal_book"
     
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    name = Column(String(255))
-    writing_date = Column(Date)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    name = db.Column(db.String(255))
+    writing_date = db.Column(db.Date, index=True)
     # Если понадобится оригинальный текст
-    # text = Column(Integer, ForeignKey("file"), unique=True) | Column(Integer, Text, unique=True, nullable=False)
+    # text = db.Column(db.Integer, db.ForeignKey("file"), unique=True) | db.Column(db.Integer, db.Text, unique=True, nullable=False)
 
 
-class AuthorBook(Base):
+class AuthorBook(db.Model):
     """
     Таблица для связи автора и первоисточника
     У книги можт быть несколько авторов
     """
-    __tablename__ = "author-book"
+    __tablename__ = "author_book"
     
-    author_id = Column(Integer, ForeignKey("author"), nullable=False)
-    оriginal_book_id = Column(Integer, ForeignKey("оriginal_book"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("author"), primary_key=True, nullable=False, index=True)
+    оriginal_book_id = db.Column(db.Integer, db.ForeignKey("оriginal_book"), primary_key=True, nullable=False, index=True)
 
 
 
-class Publisher(Base):
+class Publisher(db.Model):
     __tablename__ = "publisher"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    name = Column(String(31), nullable=False)
-    address_id = Column(Integer, ForeignKey("geo_address"))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    name = db.Column(db.String(31), nullable=False)
+    address_id = db.Column(db.Integer, db.ForeignKey("geo_address"), index=True)
 
 
-class Book(Base):
+class Book(db.Model):
     __tablename__ = "book"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    isbn = Column(String(13), unique=True)
-    title = Column(Text())
-    original_id = Column(Integer, ForeignKey("оriginal_book"), nullable=False)
-    cover_id = Column(Integer, ForeignKey("file"))
-    text_id = Column(Integer, ForeignKey("file"), nullable=False)
-    publisher_id = Column(Integer, ForeignKey("publisher"))
-    publication_date = Column(Date, nullable=False)
-    count_copy = Column(Integer, nullable=False) # количество ссылок, может быть полезно для статистики
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    isbn = db.Column(db.String(13), unique=True)
+    title = db.Column(db.Text())
+    original_id = db.Column(db.Integer, db.ForeignKey("оriginal_book"), nullable=False, index=True)
+    cover_id = db.Column(db.Integer, db.ForeignKey("file"), index=True)
+    text_id = db.Column(db.Integer, db.ForeignKey("file"), nullable=False, index=True)
+    publisher_id = db.Column(db.Integer, db.ForeignKey("publisher"), index=True)
+    publication_date = db.Column(db.Date, nullable=False, index=True)
+    count_copy = db.Column(db.Integer, nullable=False) # количество ссылок, может быть полезно для статистики
 
 
 
-class User(Base):
+class User(db.Model):
     __tablename__ = "user"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    name = Column(String(63))
-    login = Column(String(63), nullable=False, unique=True)
-    password = Column(String(63), nullable=False)
-    avatar = Column(Integer, ForeignKey("file"))
-    title = Column(Text())
-    email = Column(String(320))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    name = db.Column(db.String(63))
+    login = db.Column(db.String(63), nullable=False, unique=True)
+    password = db.Column(db.String(63), nullable=False)
+    avatar = db.Column(db.Integer, db.ForeignKey("file"), index=True)
+    title = db.Column(db.Text())
+    email = db.Column(db.String(320))
     ...
 
 
-class UserAuthor(Base):
+class UserAuthor(db.Model):
     """
     Пользователь может быть несколькими авторами (псевдонимы)
     Также, в редких случаях, и несколько пользователей могут быть одним автором
     """
-    __tablename__ = "user-author"
+    __tablename__ = "user_author"
 
-    user_id = Column(Integer, ForeignKey("User"), nullable=False)
-    author_id = Column(Integer, ForeignKey("Author"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("User"), primary_key=True, nullable=False, index=True)
+    author_id = db.Column(db.Integer, db.ForeignKey("Author"), primary_key=True, nullable=False, index=True)
 
 
-class Grade(Base):
+class Grade(db.Model):
     """
     Оценка книг пользователями, вычисляется как среднее числительное
     Возможно будет долго вычислятся
     """
     __tablename__ = "grade"
 
-    user_id = Column(Integer, ForeignKey("user"), nullable=False)
-    original_book_id = Column(Integer, ForeignKey("original_book"), nullable=False)
-    grade = Column(Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user"), primary_key=True, nullable=False, index=True)
+    original_book_id = db.Column(db.Integer, db.ForeignKey("original_book"), primary_key=True, nullable=False, index=True)
+    grade = db.Column(db.Integer, nullable=False)
 
 
 
-class CustomBook(Base):
+class CustomBook(db.Model):
     """
     Книга приобретённая пользователем, с возможностью кастомизации
     Содержит ссылку на книгу и кастомизируемые поля
@@ -192,24 +187,24 @@ class CustomBook(Base):
     """
     __tablename__ = "сustom_book"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    book_id = Column(Integer, ForeignKey("book"), nullable=False)
-    title = Column(Text())
-    cover_id = Column(Integer, ForeignKey("file"))
-    # count = Column(Integer, nullable=False)  # Подсчёт ссылок
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    book_id = db.Column(db.Integer, db.ForeignKey("book"), nullable=False, index=True)
+    title = db.Column(db.Text())
+    cover_id = db.Column(db.Integer, db.ForeignKey("file"), index=True)
+    # count = db.Column(db.Integer, nullable=False)  # Подсчёт ссылок
     #    в случае, если мы будем автоматически удалять неиспользуемую кастомизацию
 
 
-class UserСustomBook(Base):
+class UserСustomBook(db.Model):
     """
     Сводная таблица пользователя и книги пользователя
     У многих пользователей может быть одинаковая кастомная книга
     Если кто-то изменит книгу, в таблице следует появиться новой
     """
-    __tablename__ = "user-сustom_book"
+    __tablename__ = "user_сustom_book"
 
-    user_id = Column(Integer, ForeignKey("user"), nullable=False)
-    custom_book_id = Column(Integer, ForeignKey("сustom_book"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user"), primary_key=True, nullable=False, index=True)
+    custom_book_id = db.Column(db.Integer, db.ForeignKey("сustom_book"), primary_key=True, nullable=False, index=True)
     # У нас есть 2 сценария связи пользователя с книгой:
     # 1.  Пользователь имеет доступ только к кастомной версии
     #       тогда в случае если пользователь кастомизации не делал
@@ -217,88 +212,88 @@ class UserСustomBook(Base):
     #       (СustomBook со всеми полями == NULL, кроме поля book_id)
     # 2.  Пользователь имеет доступ ещё и к книгам издания
     #       нам не прийдётся создавать нулевую кастомизацию
-    #       нам прийдётся добавить поле is_custom = Column(Boolean)
+    #       нам прийдётся добавить поле is_custom = db.Column(db.Boolean)
     #       тогда поле custom_book_id будет ссылатся на 
     #       CustomBook или Book в зависимости от is_custom
-    #       (custom_book_id: ForeignKey("сustom_book") | ForeignKey("book"))
+    #       (custom_book_id: db.ForeignKey("сustom_book") | db.ForeignKey("book"))
     #       Когда пользователь создаёт кастомизацию, в db добавляется CustomBook
     #       и custom_book_id переключается на неё, is_custom = True
     #       и если до этого is_custom == True, то мы удаляем старую CustomBook, если её больше ни кто не использует
     #       именно при этом сценарии нам понадобится поле count в CustomBook
     #       поле custom_book_id можно переименовать в book_id
-    count_copy = Column(Integer) # количество копий (возможностей поделится)
+    count_copy = db.Column(db.Integer) # количество копий (возможностей поделится)
                                  # если == NULL: неограниченный терраж, с возможностью распространения
                                  # если == 0: автоудаление
 
 
 
-class Group(Base):
+class Group(db.Model):
     __tablename__ = "group"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    name = Column(String(31))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    name = db.Column(db.String(31))
     ...
 
 
-class UserGroup(Base):
-    __tablename__ = "user-group"
+class UserGroup(db.Model):
+    __tablename__ = "user_group"
 
-    user_id = Column(Integer, ForeignKey("user"), nullable=False)
-    group_id = Column(Integer, ForeignKey("group"), nullable=False)
-    # right = Column(Integer, nullable=False) | Column(Enum, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user"), primary_key=True, nullable=False, index=True)
+    group_id = db.Column(db.Integer, db.ForeignKey("group"), primary_key=True, nullable=False, index=True)
+    # right = db.Column(db.Integer, nullable=False) | db.Column(Enum, nullable=False)
     #   права пользователя в группе, это или число (0 - создатель группы, чем больше число, тем меньше прав)
     #   или перечисление (например: owner, admin, member), не столь гибкое но более наглядное
 
 
 # В случае, если мы хотим создать чат в вгруппе
-class Message(Base):
+class Message(db.Model):
     __tablename__ = "message"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    sender_id = Column(Integer, ForeignKey("user"), nullable=False)
-    group_id = Column(Integer, ForeignKey("group"))
-    # send_id = Column(Integer, ForeignKey("user-group"), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("user"), nullable=False, index=True)
+    group_id = db.Column(db.Integer, db.ForeignKey("group"), index=True)
+    # send_id = db.Column(db.Integer, db.ForeignKey("user_group"), nullable=False)
     # Возможно лучше будет сделать ссылку на отношение UserGroup, а не User и Group по отдельности
     # вместо отдельных полей sender group
-    send_time = Column(DateTime, nullable=False)
-    text = Column(Text())
-    answer = Column(Integer, ForeignKey("message")) # Если нужны ответы на сообщения
-    is_pinned = Column(Boolean)                     # Если нужны закреплённые сообщения
+    send_time = db.Column(db.DateTime, nullable=False, index=True)
+    text = db.Column(db.Text())
+    answer = db.Column(db.Integer, db.ForeignKey("message"), index=True) # Если нужны ответы на сообщения
+    is_pinned = db.Column(db.Boolean)                     # Если нужны закреплённые сообщения
 
 
 
-class BookDistribution(Base):
+class BookDistribution(db.Model):
     __tablename__ = "book_distribution"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
 
     # Здесь информация и об распрстранителе и о распростроняемой книге,
     # в не зависимости от того какой сценарий связи книги и пользователя мы выбрали
-    send_id = Column(Integer, ForeignKey("user-сustom_book"), nullable=False)
+    send_id = db.Column(db.Integer, db.ForeignKey("user_сustom_book"), nullable=False, index=True)
 
-    group_id = Column(Integer, ForeignKey("group"))  # Глобальное распространение если == NULL
-    # right = Column(Integer) | Column(Enum, nullable=False)    # == NULL, если group_id == NULL
+    group_id = db.Column(db.Integer, db.ForeignKey("group"), index=True) # Глобальное распространение если == NULL
+    # right = db.Column(db.Integer) | db.Column(Enum, nullable=False)    # == NULL, если group_id == NULL
     # права распространеия в группе, вы не можите воспользоватся этим распространением, если у вас не достаточно прав
-    # is_invisible = Colum(Boolean, default=False) # у кого не достаточно прав, даже не смогут его увидеть
+    # is_invisible = Colum(db.Boolean, default=False) # у кого не достаточно прав, даже не смогут его увидеть
 
-    distribution_date = Column(Date, nullable=False)
-    count_copy = Column(Integer) # количество копий (возможностей скачать)
+    distribution_date = db.Column(db.Date, nullable=False, index=True)
+    count_copy = db.Column(db.Integer) # количество копий (возможностей скачать)
                                  # если == NULL: неограниченный терраж, с возможностью распространения
                                  # если == 0: можно сделать автоудаление
-    price = Column(Numeric, nullable=False, default=0)
+    price = db.Column(db.Numeric, nullable=False, default=0)
     # цена за копию или за весь тирраж, если count_copy == NULL
 
 
-class Order(Base):
+class Order(db.Model):
     __tablename__ = "order"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
-    buyer = Column(Integer, ForeignKey("user"), nullable=False)
-    salesman = Column(Integer, ForeignKey("user"), nullable=False)
-    time = Column(DateTime, nullable=False)
-    count_copy = Column(Integer)
-    price = Column(Numeric, nullable=False, default=0)  # общая цена
-    book_id = Column(Integer, ForeignKey("сustom_book"), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False, unique=True, index=True)
+    buyer = db.Column(db.Integer, db.ForeignKey("user"), nullable=False, index=True)
+    salesman = db.Column(db.Integer, db.ForeignKey("user"), nullable=False, index=True)
+    time = db.Column(db.DateTime, nullable=False, index=True)
+    count_copy = db.Column(db.Integer)
+    price = db.Column(db.Numeric, nullable=False, default=0)  # общая цена
+    book_id = db.Column(db.Integer, db.ForeignKey("сustom_book"), nullable=False, index=True)
     # Если книга учавствовала в транзакции, то если у неё есть счётчик ссылок с автоудалением,
     # то этот счётчик увеличится на 1, и уменьшится на 1 при удалении транзакции
     # => кастомная книга не будет удалена, пока не удалится транзакция,
